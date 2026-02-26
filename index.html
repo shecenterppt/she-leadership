@@ -1,0 +1,2600 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SHE Leadership Journey</title>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- SweetAlert2 (MMORPG Chibi Alert) -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#FF8FAB',
+                        secondary: '#FFC2D1',
+                        accent: '#FFE5EC',
+                        wood: '#8C5A46',
+                        gold: '#FFD700',
+                        exp: '#4ADE80',
+                        dark: '#4A4E69',
+                        panel: '#2B2D42'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- HTML5 QR Code Scanner -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
+    <style>
+        body { font-family: 'Prompt', sans-serif; background-color: #FFF0F3; overflow-x: hidden; }
+        
+        .game-panel {
+            background: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 8px 0 #FFC2D1, 0 15px 20px rgba(0,0,0,0.1);
+            border: 4px solid #FF8FAB;
+            position: relative;
+        }
+
+        .scroll-panel {
+            background: #FFF9E6;
+            border: 6px solid #8C5A46;
+            border-radius: 12px;
+            box-shadow: inset 0 0 20px rgba(140, 90, 70, 0.2), 0 10px 25px rgba(0,0,0,0.5);
+            position: relative;
+        }
+        .scroll-panel::before, .scroll-panel::after {
+            content: ''; position: absolute; left: -10px; right: -10px; height: 16px; background: #5E3A24; border-radius: 8px; border: 2px solid #3A2214;
+        }
+        .scroll-panel::before { top: -10px; }
+        .scroll-panel::after { bottom: -10px; }
+        
+        .game-button {
+            background: linear-gradient(to bottom, #FF8FAB, #FB6F92);
+            border-radius: 16px;
+            border: 3px solid #FFF;
+            box-shadow: 0 6px 0 #C9184A, 0 8px 15px rgba(251, 111, 146, 0.4);
+            color: white;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.1s ease;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            cursor: pointer;
+        }
+        .game-button:active:not(:disabled) { transform: translateY(6px); box-shadow: 0 0px 0 #C9184A, 0 2px 5px rgba(251, 111, 146, 0.4); }
+        .game-button:disabled { opacity: 0.6; cursor: not-allowed; }
+        
+        .game-button-blue { background: linear-gradient(to bottom, #4EA8DE, #0077B6); box-shadow: 0 6px 0 #03045E, 0 8px 15px rgba(0, 119, 182, 0.4); }
+        .game-button-blue:active:not(:disabled) { transform: translateY(6px); box-shadow: 0 0px 0 #03045E; }
+        
+        .game-button-green { background: linear-gradient(to bottom, #4ADE80, #22C55E); box-shadow: 0 6px 0 #166534; }
+        .game-button-green:active:not(:disabled) { transform: translateY(6px); box-shadow: 0 0px 0 #166534; }
+
+        .game-button-red { background: linear-gradient(to bottom, #F87171, #EF4444); box-shadow: 0 6px 0 #991B1B; }
+        .game-button-red:active:not(:disabled) { transform: translateY(6px); box-shadow: 0 0px 0 #991B1B; }
+
+        .game-input {
+            border: 3px solid #FFC2D1;
+            border-radius: 12px;
+            background: #FFF;
+            font-weight: 600;
+            color: #4A4E69;
+            box-shadow: inset 0 3px 6px rgba(0,0,0,0.05);
+            transition: all 0.2s;
+            padding: 10px 16px;
+            width: 100%;
+        }
+        .game-input:focus { outline: none; border-color: #FF8FAB; box-shadow: inset 0 3px 6px rgba(0,0,0,0.05), 0 0 0 4px rgba(255, 143, 171, 0.3); }
+        .game-input:disabled { background: #F3F4F6; color: #9CA3AF; cursor: not-allowed; border-color: #E5E7EB; }
+
+        .quest-card { background: #FFF; border: 3px solid #FFE5EC; border-radius: 16px; transition: transform 0.2s, border-color 0.2s; }
+        .quest-card:hover { transform: translateY(-2px); border-color: #FF8FAB; }
+        .quest-completed { background: #F0FDF4; border-color: #86EFAC; opacity: 0.9; }
+        
+        .avatar-frame { background: linear-gradient(45deg, #FFD700, #FFA500); border-radius: 50%; padding: 4px; box-shadow: 0 4px 10px rgba(255, 215, 0, 0.4); }
+
+        .toggle-checkbox:checked { right: 0; border-color: #4ADE80; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #4ADE80; }
+
+        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }
+        .animate-float { animation: float 3s ease-in-out infinite; }
+        @keyframes popIn { 0% { opacity: 0; transform: scale(0.9); } 100% { opacity: 1; transform: scale(1); } }
+        .animate-pop-in { animation: popIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        @keyframes celebrate { 0% { transform: scale(0.5) rotate(-10deg); opacity: 0; } 50% { transform: scale(1.1) rotate(5deg); } 100% { transform: scale(1) rotate(0deg); opacity: 1; } }
+        .animate-celebrate { animation: celebrate 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .progress-stripes { background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.2) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.2) 75%, transparent 75%, transparent); background-size: 1rem 1rem; animation: progress-move 1s linear infinite; }
+        @keyframes progress-move { 0% { background-position: 1rem 0; } 100% { background-position: 0 0; } }
+        
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #FFF0F3; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #FF8FAB; border-radius: 4px; }
+
+        /* ปรับแต่ง CSS กล้องสแกนให้รองรับทุกอุปกรณ์ ตัด UI ที่ไม่จำเป็นออก */
+        #qr-reader { border: none !important; width: 100% !important; height: 100% !important; display: flex; flex-direction: column; background: transparent; }
+        #qr-reader__scan_region { width: 100% !important; height: 100% !important; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #000; border-radius: 12px; }
+        #qr-reader video { object-fit: cover !important; width: 100% !important; height: 100% !important; min-height: 250px; border-radius: 12px; }
+        #qr-reader__dashboard_section_csr span, #qr-reader__dashboard_section_swaplink { display: none !important; }
+        #qr-reader img { display: none !important; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <div id="portal-root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // --- Error Boundary (เกราะป้องกันจอขาว) ---
+        class ErrorBoundary extends React.Component {
+            constructor(props) {
+                super(props);
+                this.state = { hasError: false, error: null };
+            }
+            static getDerivedStateFromError(error) {
+                return { hasError: true, error };
+            }
+            componentDidCatch(error, errorInfo) {
+                console.error("ErrorBoundary caught an error", error, errorInfo);
+            }
+            render() {
+                if (this.state.hasError) {
+                    return (
+                        <div className="min-h-[100dvh] flex flex-col items-center justify-center bg-[#FFF0F3] p-6 text-center">
+                            <div className="bg-white p-8 rounded-3xl shadow-2xl max-w-lg border-4 border-red-300 animate-pop-in">
+                                <div className="text-6xl mb-4 animate-bounce">💥</div>
+                                <h2 className="text-2xl font-black text-red-500 mb-2">อ๊ะ! เกิดข้อผิดพลาดบางอย่าง</h2>
+                                <p className="text-gray-600 mb-6 font-bold text-sm">ระบบมีปัญหาขัดข้อง กรุณาแคปหน้าจอนี้แจ้งทีมงาน</p>
+                                <div className="bg-gray-100 p-4 rounded-xl text-left overflow-x-auto text-xs font-mono text-red-600 mb-6 border border-gray-200">
+                                    {this.state.error && this.state.error.toString()}
+                                </div>
+                                <button onClick={() => window.location.reload()} className="w-full py-4 game-button game-button-blue text-lg">🔄 โหลดหน้าเว็บใหม่</button>
+                            </div>
+                        </div>
+                    );
+                }
+                return this.props.children;
+            }
+        }
+
+        // --- System Components ---
+        const ModalPortal = ({ children }) => {
+            const portalRoot = document.getElementById('portal-root');
+            if (!portalRoot) return children;
+            return ReactDOM.createPortal(children, portalRoot);
+        };
+
+        const ImageWithFallback = ({ src, fallbackEmoji, className, alt }) => {
+            const [hasError, setHasError] = useState(false);
+            const isUrl = typeof src === 'string' && (src.startsWith('http') || src.startsWith('data:'));
+            
+            if (hasError || !src || !isUrl) {
+                const displayContent = (src && typeof src === 'string' && !src.startsWith('http')) ? src : fallbackEmoji;
+                return <span className={`flex items-center justify-center ${className}`}>{displayContent}</span>;
+            }
+            return <img src={src} alt={alt} className={className} onError={() => setHasError(true)} />;
+        };
+
+        // --- Global Alert Theme ---
+        window.GameAlert = {
+            success: (title, text, confirmBtn) => Swal.fire({
+                title: `<h2 class="text-3xl font-black text-green-600 drop-shadow-sm mb-2 mt-4">${title}</h2>`,
+                html: `<p class="text-gray-600 font-bold text-lg">${text}</p>`,
+                iconHtml: '<div class="text-7xl animate-bounce drop-shadow-xl mt-4">✨</div>',
+                customClass: { popup: 'game-panel border-8 border-green-400 !rounded-3xl', confirmButton: 'game-button game-button-green px-10 py-3 text-lg w-full max-w-xs mb-4', icon: '!border-0 !bg-transparent !m-0', actions: '!mt-6' },
+                buttonsStyling: false,
+                confirmButtonText: confirmBtn || 'OK'
+            }),
+            error: (title, text, confirmBtn) => Swal.fire({
+                title: `<h2 class="text-3xl font-black text-red-500 drop-shadow-sm mb-2 mt-4">${title}</h2>`,
+                html: `<p class="text-gray-600 font-bold text-lg">${text}</p>`,
+                iconHtml: '<div class="text-7xl animate-bounce drop-shadow-xl mt-4">💦</div>',
+                customClass: { popup: 'game-panel border-8 border-red-400 !rounded-3xl', confirmButton: 'game-button game-button-red px-10 py-3 text-lg w-full max-w-xs mb-4', icon: '!border-0 !bg-transparent !m-0', actions: '!mt-6' },
+                buttonsStyling: false,
+                confirmButtonText: confirmBtn || 'OK'
+            }),
+            info: (title, text, confirmBtn) => Swal.fire({
+                title: `<h2 class="text-3xl font-black text-primary drop-shadow-sm mb-2 mt-4">${title}</h2>`,
+                html: `<p class="text-gray-600 font-bold text-lg">${text}</p>`,
+                iconHtml: '<div class="text-7xl animate-bounce drop-shadow-xl mt-4">📜</div>',
+                customClass: { popup: 'game-panel border-8 border-primary !rounded-3xl', confirmButton: 'game-button px-10 py-3 text-lg w-full max-w-xs mb-4', icon: '!border-0 !bg-transparent !m-0', actions: '!mt-6' },
+                buttonsStyling: false,
+                confirmButtonText: confirmBtn || 'OK'
+            }),
+            confirm: (title, text, confirmBtnText, cancelBtnText) => Swal.fire({
+                title: `<h2 class="text-3xl font-black text-yellow-600 drop-shadow-sm mb-2 mt-4">${title}</h2>`,
+                html: `<p class="text-gray-600 font-bold text-lg">${text}</p>`,
+                iconHtml: '<div class="text-7xl animate-bounce drop-shadow-xl mt-4">❓</div>',
+                showCancelButton: true,
+                confirmButtonText: confirmBtnText || 'ตกลง',
+                cancelButtonText: cancelBtnText || 'ยกเลิก',
+                customClass: { 
+                    popup: 'game-panel border-8 border-gold !rounded-3xl', 
+                    confirmButton: 'game-button game-button-green px-8 py-3 mx-2 text-lg mb-4',
+                    cancelButton: 'game-button game-button-red px-8 py-3 mx-2 text-lg mb-4',
+                    icon: '!border-0 !bg-transparent !m-0',
+                    actions: '!mt-6'
+                },
+                buttonsStyling: false
+            })
+        };
+
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbw6Y8TrsR1-B7m38ZC6V_0vGMX0F0ZrkJYiigmnYYKhK8hWPtWG52CxETNzWZ2Yr0GTQQ/exec";
+
+        const apiCall = async (action, payload) => {
+            try {
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    redirect: 'follow',
+                    body: JSON.stringify({ action, payload }),
+                    headers: { "Content-Type": "text/plain;charset=utf-8" }
+                });
+                return await response.json();
+            } catch (error) {
+                console.error("API Call Error:", error);
+                return { success: false, message: "การเชื่อมต่อเครือข่ายล้มเหลว (Network Error)" };
+            }
+        };
+
+        const languageDict = {
+            th: {
+                appTitle: 'SHE Leadership Journey',
+                pressStart: '- PRESS START -',
+                loginBtn: 'เข้าสู่ระบบ',
+                empIdPlaceholder: 'รหัสพนักงาน 7 หลัก',
+                invalidEmpId: 'กรุณากรอกตัวเลข 7 หลัก',
+                registerAdv: 'ลงทะเบียนนักผจญภัย',
+                playerId: 'รหัสผู้เล่น',
+                charNickname: 'ชื่อเล่นตัวละคร',
+                deptGuild: 'สังกัด/หน่วยงาน',
+                startAdvBtn: 'เริ่มการผจญภัย',
+                guildStaff: 'ทางเข้าสมาคม (Staff)',
+                openDoor: 'เปิดประตู',
+                invalidAdminPass: 'รหัสผ่านกิลด์มาสเตอร์ไม่ถูกต้อง',
+                welcomePrefix: 'คุณ ',
+                level: 'LV.',
+                quest: 'Quest:',
+                currentQuests: 'เควสต์ปัจจุบัน',
+                viewAllBtn: 'ดูทั้งหมด',
+                noQuestsLevel: 'ยังไม่มีเควสต์ในเลเวลนี้',
+                completed: 'สำเร็จแล้ว',
+                pending: 'รอสแกน QR/NPC',
+                allQuestsLog: 'บันทึกเควสต์ทั้งหมด',
+                closeLogBtn: 'ปิดบันทึก',
+                emptyLog: 'ว่างเปล่า...',
+                levelUpAlert: 'LEVEL UP!',
+                levelUpDesc: 'คุณแข็งแกร่งขึ้นแล้ว! ปลดล็อคเควสต์ระดับต่อไป!',
+                claimReward: 'รับรางวัล',
+                scanQRTitle: 'แสกน QR Code',
+                cancelScan: 'ยกเลิกการแสกน',
+                scanSuccessPrefix: 'แสกนสำเร็จ! สำเร็จภารกิจ:',
+                scanFailMsg: 'QR Code ไม่ถูกต้องสำหรับภารกิจนี้ กรุณาลองใหม่อีกครั้ง',
+                npcEvalOnly: 'ภารกิจนี้ต้องให้ NPC เป็นผู้ประเมินผลให้ครับ',
+                adminGuildMaster: 'GUILD MASTER',
+                adminGuildAdmin: 'GUILD ADMIN',
+                menuDashboard: 'ภาพรวมสมาคม',
+                menuMissions: 'จัดการเควสต์',
+                menuLevels: 'ตั้งค่าแรงค์',
+                menuNPCs: 'จัดการ NPC',
+                menuSettings: 'ตั้งค่าระบบ',
+                logout: 'ออกจากระบบ',
+                dashboardTitle: 'สถิติภาพรวมสมาคม',
+                refresh: 'รีเฟรช',
+                totalPlayers: 'ผู้เล่นทั้งหมด',
+                playersByLevel: 'ผู้เล่นแต่ละเลเวล',
+                questProgressMom: 'Progress ภารกิจ (MoM)',
+                fromLastMonth: 'จากเดือนที่แล้ว',
+                adventurerList: 'รายชื่อนักผจญภัย',
+                searchPlaceholder: 'ค้นหาชื่อ, รหัส...',
+                colNo: 'ลำดับ',
+                colUserId: 'User ID',
+                colEmpId: 'รหัสพนักงาน',
+                colNickname: 'ชื่อเล่น',
+                colDept: 'หน่วยงาน',
+                colLevel: 'Level',
+                noPlayerFound: 'ไม่พบข้อมูล',
+                page: 'หน้า',
+                from: 'จาก',
+                items: 'รายการ',
+                prevPage: 'ก่อนหน้า',
+                nextPage: 'ถัดไป',
+                missionManageTitle: 'จัดการเควสต์',
+                createQuestBtn: 'สร้างเควสต์ใหม่',
+                colQuestName: 'ชื่อภารกิจ',
+                colDuration: 'ระยะเวลา',
+                colMode: 'โหมด',
+                colStatus: 'สถานะ',
+                colActions: 'จัดการ',
+                to: 'ถึง',
+                btnView: 'ข้อมูล',
+                btnQR: 'QR',
+                btnEdit: 'แก้ไข',
+                btnDelete: 'ลบ',
+                noQuestFound: 'ไม่พบข้อมูลภารกิจ',
+                modalCreateQuest: 'สร้างเควสต์ใหม่',
+                modalEditQuest: 'แก้ไขเควสต์',
+                modalViewQuest: 'ข้อมูลเควสต์',
+                questNameLabel: 'ชื่อเควสต์',
+                questNamePlaceholder: 'เช่น เข้าร่วมกิจกรรม...',
+                levelAvailLabel: 'ระดับ (Level) ที่ทำได้',
+                npcOwnerLabel: 'NPC เจ้าของภารกิจ',
+                selectNpcPlaceholder: '-- เลือก NPC --',
+                rewardModeLabel: 'โหมดการรับรางวัล (เลือกได้มากกว่า 1)',
+                modeQR: 'สแกน QR Code รับรางวัล',
+                modeNPC: 'NPC เป็นผู้เพิ่มให้ (ให้คะแนน)',
+                statusLabel: 'สถานะ',
+                statusActive: 'Active (เปิดใช้งาน)',
+                statusInactive: 'Inactive (ปิดใช้งาน)',
+                startDateLabel: 'เริ่มวันที่',
+                endDateLabel: 'สิ้นสุดวันที่',
+                btnCancel: 'ยกเลิก',
+                btnSave: 'บันทึกข้อมูล',
+                btnCloseWindow: 'ปิดหน้าต่าง',
+                errSelectMode: 'กรุณาเลือกโหมดอย่างน้อย 1 โหมด',
+                errEndDate: 'วันสิ้นสุดต้องไม่ก่อนวันเริ่มต้น',
+                confirmDelQuest: 'ยืนยันการลบภารกิจนี้?',
+                qrForQuest: 'QR Code ภารกิจ',
+                scanInstruction: 'ให้ผู้เล่นสแกน QR Code นี้เพื่อรับรางวัลผ่านระบบ',
+                levelManageTitle: 'ตั้งค่าแรงค์ (Level)',
+                createLevelBtn: 'เพิ่ม Level ใหม่',
+                colLevelNameTH: 'ชื่อเรียก (TH)',
+                colLevelNameEN: 'ชื่อเรียก (EN)',
+                colBadge: 'รูป Badge',
+                noLevelFound: 'ไม่พบข้อมูล Level',
+                modalCreateLevel: 'สร้างแรงค์ใหม่',
+                modalEditLevel: 'แก้ไขแรงค์',
+                modalViewLevel: 'ข้อมูลแรงค์',
+                levelNumLabel: 'ระดับ Level',
+                levelNameTHLabel: 'ชื่อเรียก (TH)',
+                levelNameENLabel: 'ชื่อเรียก (EN)',
+                badgeUrlLabel: 'LinkUrl Badge',
+                badgeUrlPlaceholder: 'https://... หรือ Emoji (เช่น 👑)',
+                errDupLevel: 'ระดับ Level นี้มีอยู่แล้วในระบบ',
+                confirmDelLevel: 'ยืนยันการลบ Level นี้?',
+                npcManageTitle: 'จัดการ NPC',
+                btnImport: 'Import',
+                btnExport: 'Export',
+                createNpcBtn: 'เพิ่ม NPC',
+                colNameLastname: 'ชื่อ - สกุล',
+                colRole: 'สิทธิ์',
+                noNpcFound: 'ไม่พบข้อมูล NPC',
+                modalCreateNpc: 'ลงทะเบียน NPC',
+                modalEditNpc: 'แก้ไขข้อมูล NPC',
+                modalViewNpc: 'ข้อมูล NPC',
+                usernameLabel: 'Username',
+                passwordLabel: 'Password',
+                empIdLabel: 'รหัสพนักงาน',
+                roleStaff: 'Staff (จัดการภารกิจ)',
+                roleAdmin: 'Admin (จัดการระบบ)',
+                errDupNpc: 'รหัสพนักงานนี้มีในระบบแล้ว!',
+                confirmDelNpc: 'ยืนยันการลบ NPC นี้?',
+                importSuccess: 'นำเข้าสำเร็จ',
+                importSkip: 'รายการ (ข้ามข้อมูลที่ซ้ำ)',
+                importFail: 'ไม่พบข้อมูลใหม่ หรือรูปแบบไฟล์ไม่ถูกต้อง',
+                settingsTitle: 'ตั้งค่าระบบ (System Settings)',
+                logoUrlLabel: 'LinkUrl Logo หน้าแรก',
+                logoUrlPlaceholder: 'https://... (เว้นว่างใช้โลโก้เริ่มต้น)',
+                avatarUrlLabel: 'LinkUrl ตัวละครแบ่งตาม Level (Avatar)',
+                avatarUrlPlaceholder: 'https://... (เว้นว่างใช้ตัวละครเริ่มต้น)',
+                sysNameLabel: 'ชื่อระบบ (System Name)',
+                primaryColorLabel: 'ธีมสีหลัก (Primary Color)',
+                defaultLangLabel: 'ภาษาเริ่มต้น (Default Lang)',
+                gameFeaturesLabel: 'ฟีเจอร์ภายในเกม',
+                featureLeaderboard: 'ระบบ Leaderboard',
+                featureLeaderboardDesc: 'แสดงกระดานจัดอันดับผู้เล่น',
+                featureSound: 'Sound Effect',
+                featureSoundDesc: 'เสียงประกอบเมื่อทำภารกิจสำเร็จ',
+                btnSaveSettings: 'บันทึกการตั้งค่า',
+                loading: 'กำลังดำเนินการ...',
+                alertSuccess: 'สำเร็จ!',
+                alertError: 'ผิดพลาด!',
+                alertInfo: 'แจ้งเตือน',
+                alertConfirm: 'ยืนยันการดำเนินการ',
+                btnConfirm: 'ตกลง',
+                btnGrant: 'ตรวจงาน',
+                modalGrantTitle: 'ประเมินผ่านภารกิจ',
+                grantSearchPlaceholder: 'ค้นหาชื่อ, รหัสพนักงาน...',
+                btnSelectAll: 'เลือกทั้งหมด',
+                btnClearAll: 'ล้างตัวเลือก',
+                btnConfirmGrant: 'บันทึกการประเมิน',
+                grantSuccessMsg: 'บันทึกผลให้พนักงานเรียบร้อยแล้ว',
+                errNoUserSelected: 'กรุณาเลือกพนักงานอย่างน้อย 1 คน',
+                btnReqCam: 'อนุญาตเปิดกล้อง',
+                camAccessDesc: 'ระบบต้องการสิทธิ์เข้าถึงกล้องเพื่อสแกน QR',
+                camPrep: 'กำลังเตรียมกล้อง...',
+                camFailDesc: 'กรุณาให้สิทธิ์การเข้าถึงกล้องบนเบราว์เซอร์',
+                btnRetryCam: 'ลองขอสิทธิ์อีกครั้ง',
+                btnExportCsv: 'Export CSV'
+            },
+            en: {
+                appTitle: 'SHE Leadership Journey',
+                pressStart: '- PRESS START -',
+                loginBtn: 'Login',
+                empIdPlaceholder: '7-digit Employee ID',
+                invalidEmpId: 'Please enter exactly 7 digits',
+                registerAdv: 'Register Adventurer',
+                playerId: 'Player ID',
+                charNickname: 'Character Nickname',
+                deptGuild: 'Department / Guild',
+                startAdvBtn: 'Start Adventure',
+                guildStaff: 'Guild Entrance (Staff)',
+                openDoor: 'Open Door',
+                invalidAdminPass: 'Invalid credentials',
+                welcomePrefix: 'Khun ',
+                level: 'LV.',
+                quest: 'Quest:',
+                currentQuests: 'Current Quests',
+                viewAllBtn: 'View All',
+                noQuestsLevel: 'No quests available for this level',
+                completed: 'Completed',
+                pending: 'Pending QR/NPC',
+                allQuestsLog: 'All Quests Log',
+                closeLogBtn: 'Close Log',
+                emptyLog: 'Empty...',
+                levelUpAlert: 'LEVEL UP!',
+                levelUpDesc: 'You grew stronger! Next level unlocked!',
+                claimReward: 'Claim Reward',
+                scanQRTitle: 'Scan QR Code',
+                cancelScan: 'Cancel Scan',
+                scanSuccessPrefix: 'Scan Success! Completed:',
+                scanFailMsg: 'Invalid QR Code. Please try again.',
+                npcEvalOnly: 'This quest requires NPC evaluation!',
+                adminGuildMaster: 'GUILD MASTER',
+                adminGuildAdmin: 'GUILD ADMIN',
+                menuDashboard: 'Guild Overview',
+                menuMissions: 'Manage Quests',
+                menuLevels: 'Rank Settings',
+                menuNPCs: 'Manage NPCs',
+                menuSettings: 'System Settings',
+                logout: 'Logout',
+                dashboardTitle: 'Guild Overview Stats',
+                refresh: 'Refresh',
+                totalPlayers: 'Total Players',
+                playersByLevel: 'Players by Level',
+                questProgressMom: 'Quest Progress (MoM)',
+                fromLastMonth: 'from last month',
+                adventurerList: 'Adventurers List',
+                searchPlaceholder: 'Search name, ID...',
+                colNo: 'No.',
+                colUserId: 'User ID',
+                colEmpId: 'Employee ID',
+                colNickname: 'Nickname',
+                colDept: 'Department',
+                colLevel: 'Level',
+                noPlayerFound: 'No data found',
+                page: 'Page',
+                from: 'of',
+                items: 'items',
+                prevPage: 'Previous',
+                nextPage: 'Next',
+                missionManageTitle: 'Manage Quests',
+                createQuestBtn: 'Create New Quest',
+                colQuestName: 'Quest Name',
+                colDuration: 'Duration',
+                colMode: 'Mode',
+                colStatus: 'Status',
+                colActions: 'Actions',
+                to: 'to',
+                btnView: 'View',
+                btnQR: 'QR',
+                btnEdit: 'Edit',
+                btnDelete: 'Delete',
+                noQuestFound: 'No quest data found',
+                modalCreateQuest: 'Create New Quest',
+                modalEditQuest: 'Edit Quest',
+                modalViewQuest: 'View Quest',
+                questNameLabel: 'Quest Name',
+                questNamePlaceholder: 'e.g. Join Safety Event...',
+                levelAvailLabel: 'Required Level',
+                npcOwnerLabel: 'Quest Owner (NPC)',
+                selectNpcPlaceholder: '-- Select NPC --',
+                rewardModeLabel: 'Reward Mode (Multi-select)',
+                modeQR: 'Scan QR Code to claim',
+                modeNPC: 'NPC grants reward',
+                statusLabel: 'Status',
+                statusActive: 'Active',
+                statusInactive: 'Inactive',
+                startDateLabel: 'Start Date',
+                endDateLabel: 'End Date',
+                btnCancel: 'Cancel',
+                btnSave: 'Save',
+                btnCloseWindow: 'Close Window',
+                errSelectMode: 'Select at least 1 mode',
+                errEndDate: 'End date cannot be before start date',
+                confirmDelQuest: 'Confirm deleting this quest?',
+                qrForQuest: 'Quest QR Code',
+                scanInstruction: 'Let players scan this QR code',
+                levelManageTitle: 'Rank (Level) Settings',
+                createLevelBtn: 'Add New Level',
+                colLevelNameTH: 'Name (TH)',
+                colLevelNameEN: 'Name (EN)',
+                colBadge: 'Badge Image',
+                noLevelFound: 'No level data found',
+                modalCreateLevel: 'Create New Rank',
+                modalEditLevel: 'Edit Rank',
+                modalViewLevel: 'View Rank',
+                levelNumLabel: 'Level Number',
+                levelNameTHLabel: 'Name (TH)',
+                levelNameENLabel: 'Name (EN)',
+                badgeUrlLabel: 'Badge LinkUrl',
+                badgeUrlPlaceholder: 'https://... or Emoji (e.g. 👑)',
+                errDupLevel: 'This Level already exists.',
+                confirmDelLevel: 'Confirm deleting this Level?',
+                npcManageTitle: 'Manage NPCs',
+                btnImport: 'Import',
+                btnExport: 'Export',
+                createNpcBtn: 'Add NPC',
+                colNameLastname: 'Full Name',
+                colRole: 'Role',
+                noNpcFound: 'No NPC data found',
+                modalCreateNpc: 'Register NPC',
+                modalEditNpc: 'Edit NPC Info',
+                modalViewNpc: 'View NPC Info',
+                usernameLabel: 'Username',
+                passwordLabel: 'Password',
+                empIdLabel: 'Employee ID',
+                roleStaff: 'Staff (Manage Quests)',
+                roleAdmin: 'Admin (Manage System)',
+                errDupNpc: 'Employee ID already exists!',
+                confirmDelNpc: 'Confirm deleting this NPC?',
+                importSuccess: 'Successfully imported',
+                importSkip: 'items (skipped duplicates)',
+                importFail: 'No new data found or invalid format',
+                settingsTitle: 'System Settings',
+                logoUrlLabel: 'Homepage Logo LinkUrl',
+                logoUrlPlaceholder: 'https://... (leave blank for default)',
+                avatarUrlLabel: 'Avatar LinkUrl',
+                avatarUrlPlaceholder: 'https://... (leave blank for default)',
+                sysNameLabel: 'System Name',
+                primaryColorLabel: 'Primary Color Theme',
+                defaultLangLabel: 'Default Language',
+                gameFeaturesLabel: 'Game Features',
+                featureLeaderboard: 'Leaderboard System',
+                featureLeaderboardDesc: 'Show player ranking board',
+                featureSound: 'Sound Effect',
+                featureSoundDesc: 'Play sound on quest completion',
+                btnSaveSettings: 'Save Settings',
+                loading: 'Loading...',
+                alertSuccess: 'Success!',
+                alertError: 'Error!',
+                alertInfo: 'Notice',
+                alertConfirm: 'Confirm Action',
+                btnConfirm: 'Confirm',
+                btnGrant: 'Evaluate',
+                modalGrantTitle: 'Grant Mission Completion',
+                grantSearchPlaceholder: 'Search name, ID...',
+                btnSelectAll: 'Select All',
+                btnClearAll: 'Clear All',
+                btnConfirmGrant: 'Save Evaluation',
+                grantSuccessMsg: 'Mission granted to selected users successfully',
+                errNoUserSelected: 'Please select at least 1 employee',
+                btnReqCam: 'Allow Camera',
+                camAccessDesc: 'Camera access is required to scan QR',
+                camPrep: 'Preparing camera...',
+                camFailDesc: 'Please allow camera access in browser settings',
+                btnRetryCam: 'Try requesting again',
+                btnExportCsv: 'Export CSV'
+            }
+        };
+
+        const initialLevels = [];
+        const initialMissions = [];
+        const initialNPCs = [];
+
+        // ==========================================
+        // COMPONENTS DEFINITIONS (ORDER IS IMPORTANT)
+        // ==========================================
+        
+        const LoginScreen = ({ setView, setUser, systemLogo, t, lang, setLang }) => {
+            const [empId, setEmpId] = useState('');
+            const [isLoading, setIsLoading] = useState(false);
+            const [showFirstTime, setShowFirstTime] = useState(false);
+            const [showAdminLogin, setShowAdminLogin] = useState(false);
+
+            const handlePlayerLogin = async (e) => {
+                e.preventDefault();
+                if (!/^\d{7}$/.test(empId)) { 
+                    GameAlert.error(t.alertError, t.invalidEmpId, t.btnConfirm);
+                    return; 
+                }
+                setIsLoading(true);
+
+                const res = await apiCall('loginPlayer', { empId });
+                setIsLoading(false);
+
+                if (res.success) {
+                    if (res.isNew) {
+                        setShowFirstTime(true);
+                    } else {
+                        setUser({ role: 'player', ...res.user });
+                        setView('player');
+                    }
+                } else {
+                    GameAlert.error(t.alertError, res.message || "การเชื่อมต่อล้มเหลว", t.btnConfirm);
+                }
+            };
+
+            const handleFirstTimeSubmit = async (e) => {
+                e.preventDefault();
+                setIsLoading(true);
+                const nickname = e.target.nickname.value;
+                const dept = e.target.dept.value;
+
+                const res = await apiCall('registerPlayer', { empId, nickname, department: dept });
+                setIsLoading(false);
+
+                if(res.success) {
+                    setUser({ role: 'player', ...res.user });
+                    setView('player');
+                } else {
+                    GameAlert.error(t.alertError, res.message || (lang==='th'?"การลงทะเบียนล้มเหลว":"Registration Failed"), t.btnConfirm);
+                    setShowFirstTime(false);
+                }
+            };
+
+            const handleAdminSubmit = async (e) => {
+                e.preventDefault();
+                setIsLoading(true);
+                const res = await apiCall('loginAdmin', { username: e.target.username.value, password: e.target.password.value });
+                setIsLoading(false);
+
+                if(res.success) {
+                    setUser({ role: 'admin', username: res.user.username, fullname: res.user.fullname });
+                    setView('admin');
+                } else {
+                    GameAlert.error(t.alertError, t.invalidAdminPass, t.btnConfirm);
+                }
+            };
+
+            return (
+                <>
+                    <div className="min-h-[100dvh] flex items-center justify-center p-4 sm:p-8 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] bg-primary bg-opacity-10 relative overflow-hidden">
+                        <div className="absolute top-10 left-10 text-6xl opacity-20 animate-float">☁️</div>
+                        <div className="absolute bottom-20 left-20 text-6xl opacity-20 animate-float" style={{animationDelay: '1s'}}>🏰</div>
+                        
+                        <button onClick={() => setLang(lang === 'th' ? 'en' : 'th')} className="absolute top-6 right-6 bg-white text-primary text-sm font-black px-4 py-2 rounded-full shadow-md border-2 border-pink-200 z-50 hover:bg-pink-50 transition cursor-pointer uppercase">
+                            {lang === 'th' ? 'EN' : 'TH'}
+                        </button>
+
+                        <div className="w-full max-w-md game-panel p-8 text-center relative z-10 animate-pop-in mt-16 my-auto">
+                            <div className="absolute -top-16 left-1/2 transform -translate-x-1/2 w-32 h-32 bg-white rounded-full border-4 border-primary shadow-xl flex items-center justify-center overflow-hidden">
+                                {systemLogo ? (
+                                    <img src={systemLogo} alt="Logo" className="w-full h-full object-contain p-2 bg-white" />
+                                ) : (
+                                    <div className="w-full h-full bg-gradient-to-br from-yellow-50 to-yellow-200 flex items-center justify-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-20 h-20 drop-shadow-md">
+                                            <defs>
+                                                <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                                    <stop offset="0%" stopColor="#FFF200" />
+                                                    <stop offset="50%" stopColor="#FFC300" />
+                                                    <stop offset="100%" stopColor="#E6A100" />
+                                                </linearGradient>
+                                            </defs>
+                                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="url(#goldGrad)" stroke="#B8860B" strokeWidth="1" strokeLinejoin="round" />
+                                            <path d="M12 5.5l-6 2.2v6.8c0 4.5 6 7.5 6 7.5s6-3 6-7.5v-6.8l-6-2.2z" fill="#FFD700" opacity="0.8" />
+                                            <path d="M12 20.5c-4-2.5-4.5-5.5-4.5-5.5v-5l4.5-1.5 4.5 1.5v5s-.5 3-4.5 5.5z" fill="#FFFBE6" opacity="0.5" />
+                                            <circle cx="12" cy="11" r="3" fill="#FFF" opacity="0.9" />
+                                        </svg>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="mt-14 mb-8">
+                                <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-primary to-orange-400 drop-shadow-sm">{t.appTitle}</h1>
+                                <p className="text-sm font-bold text-gray-400 mt-2 tracking-widest uppercase">{t.pressStart}</p>
+                            </div>
+                            <form onSubmit={handlePlayerLogin} className="space-y-5">
+                                <div>
+                                    <input type="text" placeholder={t.empIdPlaceholder} maxLength="7" disabled={isLoading} className="game-input text-center text-xl tracking-widest" value={empId} onChange={(e) => setEmpId(e.target.value.replace(/\D/g, ''))} />
+                                </div>
+                                <button type="submit" disabled={isLoading} className="w-full py-4 game-button text-xl">
+                                    {isLoading ? t.loading : `⚔️ ${t.loginBtn}`}
+                                </button>
+                            </form>
+                        </div>
+
+                        <div className="fixed bottom-6 right-6 z-50 cursor-pointer animate-float hover:scale-110" onClick={() => setShowAdminLogin(true)}>
+                            <div className="bg-white/90 p-4 rounded-2xl shadow-xl border-4 border-gold text-4xl">🧰</div>
+                        </div>
+                    </div>
+
+                    {showFirstTime && (
+                        <ModalPortal>
+                            <div className="fixed inset-0 z-[9999] overflow-y-auto bg-gray-900/60 backdrop-blur-sm">
+                                <div className="flex min-h-screen items-center justify-center p-4 text-center sm:p-6">
+                                    <div className="relative w-full max-w-md bg-white rounded-3xl p-8 animate-pop-in scroll-panel shadow-2xl text-left transition-all my-8 mx-auto">
+                                        <div className="text-center mb-6">
+                                            <div className="text-5xl mb-2">📜</div>
+                                            <h2 className="text-2xl font-black text-wood">{t.registerAdv}</h2>
+                                        </div>
+                                        <form onSubmit={handleFirstTimeSubmit} className="space-y-4">
+                                            <div><label className="text-sm font-bold text-wood">{t.playerId}</label><input type="text" disabled value={empId} className="game-input bg-gray-100 text-gray-500" /></div>
+                                            <div><label className="text-sm font-bold text-wood">🏷️ {t.charNickname}</label><input name="nickname" type="text" disabled={isLoading} required className="game-input" /></div>
+                                            <div><label className="text-sm font-bold text-wood">🏰 {t.deptGuild}</label><input name="dept" type="text" disabled={isLoading} required className="game-input" /></div>
+                                            <button type="submit" disabled={isLoading} className="w-full py-4 game-button game-button-green mt-6">
+                                                {isLoading ? t.loading : `⭐ ${t.startAdvBtn}`}
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </ModalPortal>
+                    )}
+
+                    {showAdminLogin && (
+                        <ModalPortal>
+                            <div className="fixed inset-0 z-[9999] overflow-y-auto bg-gray-900/60 backdrop-blur-sm">
+                                <div className="flex min-h-screen items-center justify-center p-4 text-center sm:p-6">
+                                    <div className="relative w-full max-w-md bg-panel rounded-3xl p-8 animate-pop-in border-4 border-gold shadow-2xl text-white text-left transition-all my-8 mx-auto">
+                                        <div className="flex justify-between items-center mb-6 border-b-2 border-gray-700 pb-4">
+                                            <h2 className="text-2xl font-black text-gold flex items-center gap-2"><span>🛡️</span> {t.guildStaff}</h2>
+                                            <button onClick={() => setShowAdminLogin(false)} className="text-gray-400 hover:text-white font-bold text-xl">✕</button>
+                                        </div>
+                                        <form onSubmit={handleAdminSubmit} className="space-y-4">
+                                            <input name="username" type="text" placeholder="Username" disabled={isLoading} className="game-input bg-gray-800 border-gray-600 text-white focus:border-gold" required />
+                                            <input name="password" type="password" placeholder="Password" disabled={isLoading} className="game-input bg-gray-800 border-gray-600 text-white focus:border-gold" required />
+                                            <button type="submit" disabled={isLoading} className="w-full py-4 game-button bg-gradient-to-b from-yellow-400 to-yellow-600 border-yellow-200 box-shadow-[0_6px_0_#A16207] text-panel">
+                                                {isLoading ? t.loading : `🔑 ${t.openDoor}`}
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </ModalPortal>
+                    )}
+                </>
+            );
+        };
+
+        const PlayerScreen = ({ user, setView, setUser, triggerLevelUp, levels, missions, missionLogs, systemAvatars, lang, setLang, t }) => {
+            const [playerMissions, setPlayerMissions] = useState([]);
+            const [showAllMissions, setShowAllMissions] = useState(false);
+            const [scanningMission, setScanningMission] = useState(null);
+
+            const safeMissions = Array.isArray(missions) ? missions : [];
+            const safeLevels = Array.isArray(levels) ? levels : [];
+            const safeLogs = Array.isArray(missionLogs) ? missionLogs : [];
+
+            // คำนวณเควสต์ที่ผ่านแล้วจาก Database
+            const userLogs = safeLogs.filter(log => String(log.userId) === String(user.id));
+            const completedMissionIds = userLogs.map(log => String(log.missionId));
+
+            const currentLevelMissions = safeMissions.filter(m => String(m.level) === String(user.level)).map(m => {
+                const isLocalCompleted = playerMissions.find(p => String(p.id) === String(m.id))?.completed;
+                const isDbCompleted = completedMissionIds.includes(String(m.id));
+                return { ...m, completed: isLocalCompleted || isDbCompleted };
+            });
+
+            const currentLevelData = safeLevels.find(l => String(l.id) === String(user.level)) || safeLevels[0] || { id: 1, nameTH: 'ไม่ระบุ', nameEN: 'Unknown', badge: '🔰' };
+            const completedCount = currentLevelMissions.filter(m => m.completed).length;
+            const progressPct = currentLevelMissions.length === 0 ? 0 : Math.round((completedCount / currentLevelMissions.length) * 100);
+
+            const handleMissionClick = (mission) => {
+                if (mission.completed) return; 
+                
+                // รองรับกรณีข้อมูลโหมดอาจจะไม่มีในชีต ให้ถือว่าเปิด QR ได้เพื่อความปลอดภัย
+                const modes = Array.isArray(mission.modes) && mission.modes.length > 0 ? mission.modes : ['QR'];
+                
+                if (modes.includes('QR')) {
+                    setScanningMission(mission); 
+                } else if (modes.includes('NPC')) {
+                    GameAlert.info(t.alertInfo, t.npcEvalOnly, t.btnConfirm);
+                } else {
+                    setScanningMission(mission); 
+                }
+            };
+
+            const completeMission = async (missionId) => {
+                // เปลี่ยนสถานะในเครื่องให้เสร็จทันที
+                const newArr = [...playerMissions, { id: missionId, completed: true }];
+                setPlayerMissions(newArr);
+                
+                const isAlreadyDone = completedMissionIds.includes(String(missionId));
+                if (!isAlreadyDone) {
+                    // ส่งข้อมูลไปเซฟที่ Backend เบื้องหลัง
+                    await apiCall('grantMissionToUsers', {
+                        missionId: missionId,
+                        userIds: [user.id],
+                        npcId: 'QR_Scanner'
+                    });
+                }
+                
+                const levelMissions = safeMissions.filter(m => String(m.level) === String(user.level));
+                let totalDone = 0;
+                levelMissions.forEach(m => {
+                    if (completedMissionIds.includes(String(m.id)) || newArr.find(p => String(p.id) === String(m.id))?.completed) {
+                        totalDone++;
+                    }
+                });
+                
+                if(totalDone === levelMissions.length && levelMissions.length > 0) {
+                    setTimeout(() => triggerLevelUp((parseInt(user.level) || 0) + 1), 600);
+                }
+            };
+
+            // ระบบแสกน QR แบบใหม่เสถียร 100%
+            const QRScannerModal = () => {
+                const [camError, setCamError] = useState(null);
+                const [isScanning, setIsScanning] = useState(false);
+                const [permissionRequested, setPermissionRequested] = useState(false);
+                const scannerRef = useRef(null);
+
+                const stopScanner = () => {
+                    if (scannerRef.current) {
+                        try {
+                            if (scannerRef.current.isScanning || scannerRef.current.getState() === 2) {
+                                scannerRef.current.stop().then(() => {
+                                    scannerRef.current.clear();
+                                }).catch(() => {});
+                            } else {
+                                scannerRef.current.clear();
+                            }
+                        } catch (e) {}
+                    }
+                };
+
+                const handleCancelScan = () => {
+                    stopScanner();
+                    setScanningMission(null);
+                };
+
+                const startScan = async () => {
+                    setPermissionRequested(true);
+                    setCamError(null);
+                    
+                    try {
+                        const cameras = await Html5Qrcode.getCameras();
+                        if (cameras && cameras.length > 0) {
+                            if (!scannerRef.current) {
+                                scannerRef.current = new Html5Qrcode("qr-reader");
+                            }
+                            
+                            const onScanSuccess = (decodedText) => {
+                                stopScanner();
+                                const expectedQRData = `SLJ_MISSION_${scanningMission.id}`;
+                                if (decodedText === expectedQRData) {
+                                    completeMission(scanningMission.id);
+                                    GameAlert.success(t.alertSuccess, `${t.scanSuccessPrefix} ${scanningMission.name}`, t.btnConfirm);
+                                } else {
+                                    GameAlert.error(t.alertError, t.scanFailMsg, t.btnConfirm);
+                                }
+                                setScanningMission(null);
+                            };
+
+                            const config = { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 };
+                            
+                            try {
+                                await scannerRef.current.start({ facingMode: "environment" }, config, onScanSuccess);
+                                setIsScanning(true);
+                            } catch (e) {
+                                console.log("Failed to start environment camera, trying default", e);
+                                try {
+                                    await scannerRef.current.start(cameras[0].id, config, onScanSuccess);
+                                    setIsScanning(true);
+                                } catch (e2) {
+                                    console.error(e2);
+                                    setCamError('ไม่สามารถเริ่มต้นกล้องได้ กรุณารีเฟรชแล้วลองใหม่');
+                                    setPermissionRequested(false);
+                                }
+                            }
+                        } else {
+                            setCamError('ไม่พบกล้องในอุปกรณ์ของคุณ');
+                            setPermissionRequested(false);
+                        }
+                    } catch (err) {
+                        console.error("Camera Request Error:", err);
+                        setCamError(err.message || "ไม่สามารถเข้าถึงกล้องได้ กรุณาให้สิทธิ์กล้องในเบราว์เซอร์");
+                        setPermissionRequested(false);
+                    }
+                };
+
+                useEffect(() => {
+                    return () => {
+                        stopScanner();
+                    };
+                }, []);
+
+                return (
+                    <div className="fixed inset-0 z-[9999] overflow-y-auto bg-gray-900/90 backdrop-blur-sm">
+                        <div className="flex min-h-screen items-center justify-center p-4 text-center sm:p-6">
+                            <div className="relative w-full max-w-sm bg-white p-6 rounded-3xl animate-pop-in shadow-2xl border-4 border-panel text-left transition-all my-8 mx-auto">
+                                <h3 className="text-xl font-black text-center mb-2 text-panel flex justify-center items-center gap-2"><span>📷</span> {t.scanQRTitle}</h3>
+                                <p className="text-center text-sm font-bold text-gray-500 mb-4 truncate">{scanningMission?.name}</p>
+                                
+                                <div className="rounded-2xl overflow-hidden border-4 border-pink-200 shadow-inner bg-black min-h-[250px] h-[250px] relative flex items-center justify-center w-full">
+                                    
+                                    {/* พื้นที่สำหรับ Library HTML5QRCODE ต้อง render ไว้เสมอเพื่อให้ DOM ผูกติดกับ Library สำเร็จ */}
+                                    <div id="qr-reader" className="w-full h-full"></div>
+
+                                    {/* UI ครอบทับตอนที่ยังไม่เปิดกล้อง */}
+                                    {!isScanning && (
+                                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50 z-10 p-4 text-center">
+                                            {!permissionRequested ? (
+                                                <>
+                                                    <span className="text-5xl mb-3">📸</span>
+                                                    <p className="text-sm font-bold text-gray-500 mb-4">{t.camAccessDesc}</p>
+                                                    <button onClick={startScan} className="game-button game-button-green px-6 py-3 text-sm shadow-[0_4px_0_#166534]">{t.btnReqCam}</button>
+                                                </>
+                                            ) : camError ? (
+                                                <>
+                                                    <span className="text-4xl mb-2 text-red-500">🚫</span>
+                                                    <p className="text-xs font-bold text-red-500 mb-4 px-2 leading-relaxed">{camError}</p>
+                                                    <button onClick={startScan} className="game-button game-button-blue px-4 py-2 text-sm">{t.btnRetryCam}</button>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <div className="animate-spin text-4xl mb-2">⏳</div>
+                                                    <p className="text-sm font-bold text-primary">{t.camPrep}</p>
+                                                </>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                                
+                                <button onClick={handleCancelScan} className="mt-6 w-full py-4 game-button game-button-red text-lg shadow-[0_6px_0_#991B1B]">{t.cancelScan}</button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            };
+
+            return (
+                <>
+                    <div className="min-h-[100dvh] pb-20 max-w-lg mx-auto bg-[#FFF0F3] shadow-2xl relative overflow-hidden border-x border-pink-100">
+                        <div className="bg-panel px-6 pt-12 pb-8 rounded-b-[40px] text-white shadow-[0_8px_0_#212336] relative z-10">
+                            <div className="flex justify-between items-start mb-6">
+                                <div className="flex gap-4 items-center">
+                                    <div className="relative">
+                                        <div className="avatar-frame">
+                                            <div className="w-16 h-16 rounded-full overflow-hidden bg-white">
+                                                <ImageWithFallback src={(systemAvatars && systemAvatars[user.level]) ? systemAvatars[user.level] : `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}&backgroundColor=FFC2D1`} fallbackEmoji="👤" className="w-full h-full object-cover" alt="Avatar" />
+                                            </div>
+                                        </div>
+                                        <button onClick={() => setLang(lang === 'th' ? 'en' : 'th')} className="absolute -top-1 -right-2 bg-white text-primary text-[10px] font-black px-2 py-0.5 rounded-full shadow-md border-2 border-pink-200 z-20 hover:bg-pink-50 transition cursor-pointer uppercase">
+                                            {lang === 'th' ? 'EN' : 'TH'}
+                                        </button>
+                                    </div>
+                                    <div>
+                                        <p className="text-gold text-xs font-bold tracking-widest uppercase">{user.id}</p>
+                                        <h2 className="text-2xl font-black text-white drop-shadow-md">{t.welcomePrefix}{user.nickname}</h2>
+                                        <p className="text-xs text-gray-300 flex items-center gap-1 mt-1"><span>🏰</span> {user.dept}</p>
+                                    </div>
+                                </div>
+                                <button onClick={() => {setUser(null); setView('login');}} className="bg-white/10 p-3 rounded-xl hover:bg-white/20 transition border border-white/20">🚪</button>
+                            </div>
+
+                            <div className="bg-white text-dark p-5 rounded-2xl shadow-lg mt-2 flex items-center gap-5 border-b-4 border-gray-200">
+                                <div className="w-20 h-20 bg-gradient-to-br from-pink-100 to-white rounded-2xl flex items-center justify-center text-4xl shadow-inner border-2 border-primary relative overflow-hidden flex-shrink-0">
+                                    <ImageWithFallback src={currentLevelData.badge} fallbackEmoji="🔰" className="w-full h-full object-contain" alt="badge" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex justify-between items-end mb-2 truncate">
+                                        <span className="font-black text-lg text-panel truncate block">{lang === 'th' ? currentLevelData.nameTH : currentLevelData.nameEN}</span>
+                                    </div>
+                                    <div className="w-full bg-gray-200 rounded-full h-5 mb-1 overflow-hidden shadow-inner border-2 border-gray-300">
+                                        <div className="h-full bg-exp rounded-full progress-stripes flex items-center justify-end px-2 transition-all duration-500" style={{ width: `${progressPct}%` }}>
+                                            {progressPct > 0 && <span className="text-[10px] text-white font-black drop-shadow-md">{progressPct}%</span>}
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-between items-center mt-1">
+                                        <span className="text-[11px] font-black text-primary bg-pink-100 border border-pink-200 px-2 py-0.5 rounded-md shadow-sm">{t.level} {user.level}</span>
+                                        <span className="text-right text-xs text-gray-500 font-bold">{t.quest} {completedCount}/{currentLevelMissions.length}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="px-6 mt-10 relative z-10">
+                            <div className="flex justify-between items-center mb-6">
+                                <h3 className="font-black text-xl text-panel flex items-center gap-2 drop-shadow-sm"><span className="text-2xl">📜</span> {t.currentQuests}</h3>
+                                <button onClick={() => setShowAllMissions(true)} className="text-xs text-primary font-black bg-white border-2 border-primary px-4 py-2 rounded-xl shadow-[0_3px_0_#FF8FAB] hover:translate-y-[2px] hover:shadow-[0_1px_0_#FF8FAB] transition-all">{t.viewAllBtn}</button>
+                            </div>
+
+                            <div className="space-y-4">
+                                {currentLevelMissions.length === 0 ? (
+                                    <div className="text-center p-8 bg-white/50 rounded-2xl border-2 border-dashed border-pink-200 font-bold text-gray-400">{t.noQuestsLevel}</div>
+                                ) : (
+                                    currentLevelMissions.map(mission => (
+                                        <div key={mission.id} onClick={() => handleMissionClick(mission)} className={`quest-card p-4 cursor-pointer flex items-center gap-4 ${mission.completed ? 'bg-green-50 border-green-300 opacity-90' : 'shadow-[0_4px_0_#FFE5EC] bg-white border-pink-100'}`}>
+                                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 border-2 shadow-inner ${mission.completed ? 'bg-gradient-to-br from-green-300 to-green-500 border-green-200 text-white text-3xl' : 'bg-gray-50 border-gray-200 text-pink-300 text-3xl'}`}>
+                                                {mission.completed ? '✨' : '❓'}
+                                            </div>
+                                            <div className="flex-1">
+                                                <p className={`font-black text-lg leading-tight ${mission.completed ? 'text-green-700' : 'text-panel'}`}>{mission.name}</p>
+                                                <div className="flex items-center gap-2 mt-2">
+                                                    <span className={`text-[11px] px-3 py-1 rounded-lg font-black shadow-sm border ${mission.completed ? 'bg-green-100 text-green-700 border-green-200' : 'bg-orange-50 text-orange-600 border-orange-200'}`}>
+                                                        {mission.completed ? t.completed : `⏳ ${t.pending}`}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {scanningMission && (
+                        <ModalPortal>
+                            <QRScannerModal />
+                        </ModalPortal>
+                    )}
+
+                    {showAllMissions && (
+                        <ModalPortal>
+                            <div className="fixed inset-0 z-[9999] overflow-y-auto bg-gray-900/60 backdrop-blur-sm">
+                                <div className="flex min-h-screen items-center justify-center p-4 text-center sm:p-6">
+                                    <div className="relative w-full max-w-md scroll-panel p-6 flex flex-col animate-pop-in shadow-2xl text-left transition-all my-8 mx-auto">
+                                        <div className="flex justify-between items-center mb-4 border-b-2 border-wood/20 pb-2">
+                                            <h2 className="text-2xl font-black text-wood">📜 {t.allQuestsLog}</h2>
+                                            <button onClick={() => setShowAllMissions(false)} className="text-wood hover:text-red-500 font-black text-xl">✕</button>
+                                        </div>
+                                        <div className="flex-1 overflow-y-auto pr-2 space-y-6 max-h-[50vh]">
+                                            {safeLevels.map(lvl => {
+                                                const lvlMissions = safeMissions.filter(m => String(m.level) === String(lvl.id));
+                                                return (
+                                                    <div key={lvl.id}>
+                                                        <h3 className="font-bold text-panel mb-2 flex items-center gap-2 bg-white/50 p-2 rounded-lg">
+                                                            <span className="text-xl inline-flex items-center justify-center w-8 h-8 overflow-hidden rounded-full">
+                                                                <ImageWithFallback src={lvl.badge} fallbackEmoji="🔰" className="w-full h-full object-contain" alt="badge" />
+                                                            </span> 
+                                                            {t.level} {lvl.id} : {lang === 'th' ? lvl.nameTH : lvl.nameEN}
+                                                        </h3>
+                                                        <div className="space-y-2 pl-4 border-l-2 border-wood/30">
+                                                            {lvlMissions.length === 0 && <p className="text-sm text-gray-500 italic">{t.emptyLog}</p>}
+                                                            {lvlMissions.map(m => {
+                                                                const isLocalCompleted = playerMissions.find(p => String(p.id) === String(m.id))?.completed;
+                                                                const isDbCompleted = completedMissionIds.includes(String(m.id));
+                                                                const isDone = isLocalCompleted || isDbCompleted;
+                                                                return (
+                                                                    <div key={m.id} className="text-sm font-medium flex items-center gap-2">
+                                                                        <span className={isDone ? 'text-green-500' : 'text-gray-400'}>{isDone ? '✅' : '⬜'}</span>
+                                                                        <span className={isDone ? 'text-gray-500 line-through' : 'text-dark'}>{m.name}</span>
+                                                                    </div>
+                                                                )
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                )
+                                            })}
+                                        </div>
+                                        <button onClick={() => setShowAllMissions(false)} className="mt-6 w-full py-3 game-button game-button-red text-lg">{t.closeLogBtn}</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </ModalPortal>
+                    )}
+                </>
+            );
+        };
+
+        const AdminDashboard = ({ t, systemAvatars, allPlayers = [], onRefresh, levels, missions, missionLogs, lang }) => {
+            const [searchTerm, setSearchTerm] = useState('');
+            const [currentPage, setCurrentPage] = useState(1);
+            const [selectedPlayer, setSelectedPlayer] = useState(null); 
+            const itemsPerPage = 10;
+
+            const safePlayers = Array.isArray(allPlayers) ? allPlayers : [];
+            const safeLevels = Array.isArray(levels) ? levels : [];
+            const safeMissions = Array.isArray(missions) ? missions : [];
+            const safeLogs = Array.isArray(missionLogs) ? missionLogs : [];
+
+            const totalPlayers = safePlayers.length;
+            const levelCounts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+            safePlayers.forEach(p => {
+                if (levelCounts[p.level] !== undefined) {
+                    levelCounts[p.level]++;
+                } else {
+                    levelCounts[p.level] = 1; 
+                }
+            });
+
+            const sortedPlayers = [...safePlayers].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+            const filteredPlayers = sortedPlayers.filter(p => 
+                String(p.nickname || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+                String(p.empId || '').includes(searchTerm) ||
+                String(p.dept || '').toLowerCase().includes(searchTerm.toLowerCase())
+            );
+
+            const indexOfLastItem = currentPage * itemsPerPage;
+            const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+            const currentItems = filteredPlayers.slice(indexOfFirstItem, indexOfLastItem);
+            const totalPages = Math.ceil(filteredPlayers.length / itemsPerPage);
+
+            const handleExportCSV = () => {
+                const headers = [t.colNo, t.colUserId, t.colEmpId, t.colNickname, t.colDept, t.colLevel, 'วันที่ลงทะเบียน'];
+                const csvRows = [headers.join(',')];
+                
+                filteredPlayers.forEach((p, index) => {
+                    const regDate = p.timestamp ? new Date(p.timestamp).toLocaleDateString('th-TH') : '-';
+                    csvRows.push(`${index + 1},${p.id},${p.empId},"${p.nickname}","${p.dept || ''}",${p.level},${regDate}`);
+                });
+                
+                const csvString = "\uFEFF" + csvRows.join('\n');
+                const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.setAttribute('href', url);
+                link.setAttribute('download', 'adventurers_list.csv');
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            };
+
+            let pLevelData = safeLevels[0] || { id: 1, nameTH: 'ไม่ระบุ', nameEN: 'Unknown', badge: '🔰' };
+            let pMissions = [];
+            let pCompletedCount = 0; 
+            let pProgressPct = 0;
+            if (selectedPlayer) {
+                pLevelData = safeLevels.find(l => String(l.id) === String(selectedPlayer.level)) || pLevelData;
+                
+                const userLogs = safeLogs.filter(log => String(log.userId) === String(selectedPlayer.id));
+                const completedIds = userLogs.map(log => String(log.missionId));
+
+                pMissions = safeMissions.filter(m => String(m.level) === String(selectedPlayer.level)).map(m => ({
+                    ...m,
+                    completed: completedIds.includes(String(m.id))
+                }));
+                
+                pCompletedCount = pMissions.filter(m => m.completed).length;
+                pProgressPct = pMissions.length === 0 ? 0 : Math.round((pCompletedCount / pMissions.length) * 100);
+            }
+
+            return (
+                <div className="space-y-6 animate-pop-in max-w-6xl mx-auto">
+                    <div className="flex flex-col md:flex-row justify-between items-center bg-white p-4 rounded-2xl shadow-sm border-2 border-gray-200 gap-4">
+                        <h1 className="text-3xl font-black text-panel flex items-center gap-3"><span>📊</span> {t.dashboardTitle}</h1>
+                        <div className="flex flex-wrap justify-end gap-2 w-full md:w-auto items-center">
+                            <button onClick={onRefresh} className="game-button bg-gradient-to-b from-gray-100 to-gray-200 !border-gray-300 !text-gray-700 !shadow-[0_4px_0_#D1D5DB] px-4 py-2 text-sm active:!shadow-[0_0px_0_#D1D5DB] flex items-center gap-2">
+                                🔄 {t.refresh}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="bg-white p-6 rounded-2xl shadow-md border-b-4 border-blue-400 relative overflow-hidden flex flex-col justify-center">
+                            <div className="absolute -right-4 -bottom-4 text-8xl opacity-10">👥</div>
+                            <p className="text-gray-500 font-bold">{t.totalPlayers}</p>
+                            <h3 className="text-5xl font-black text-panel mt-2">{totalPlayers}</h3>
+                        </div>
+                        
+                        <div className="bg-white p-6 rounded-2xl shadow-md border-b-4 border-gold relative overflow-hidden">
+                            <div className="absolute -right-4 -bottom-4 text-8xl opacity-10">🌟</div>
+                            <p className="text-gray-500 font-bold mb-3">{t.playersByLevel}</p>
+                            <div className="flex flex-wrap gap-2">
+                                {[1, 2, 3, 4, 5].map(lvl => (
+                                    <div key={lvl} className="bg-yellow-50 border border-yellow-200 px-3 py-1.5 rounded-lg flex items-center gap-2">
+                                        <span className="font-bold text-yellow-800 text-xs">Lv.{lvl}</span>
+                                        <span className="bg-white px-2 rounded-md font-black text-dark text-sm">{levelCounts[lvl] || 0}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="bg-white p-6 rounded-2xl shadow-md border-b-4 border-green-400 relative overflow-hidden flex flex-col justify-center">
+                            <div className="absolute -right-4 -bottom-4 text-8xl opacity-10">📈</div>
+                            <p className="text-gray-500 font-bold">{t.questProgressMom}</p>
+                            <div className="flex items-end gap-3 mt-2">
+                                <h3 className="text-4xl font-black text-green-600">+15.5%</h3>
+                                <span className="text-sm font-bold text-gray-400 mb-1">{t.fromLastMonth}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white rounded-2xl shadow-md border-2 border-gray-200 overflow-hidden">
+                        <div className="p-4 bg-gray-50 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-4">
+                            <h2 className="font-black text-lg text-panel flex items-center gap-2"><span>🛡️</span> {t.adventurerList}</h2>
+                            <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-2">
+                                <input 
+                                    type="text" 
+                                    placeholder={t.searchPlaceholder} 
+                                    className="game-input text-sm !py-2 w-full sm:w-64" 
+                                    value={searchTerm}
+                                    onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                                />
+                                <button onClick={handleExportCSV} className="game-button bg-gradient-to-b from-green-400 to-green-600 !border-green-300 !shadow-[0_4px_0_#166534] px-4 py-2 text-sm active:!shadow-[0_0px_0_#166534] flex items-center justify-center gap-2">
+                                    📥 {t.btnExportCsv}
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left min-w-[800px]">
+                                <thead className="bg-panel text-white text-sm whitespace-nowrap">
+                                    <tr>
+                                        <th className="p-4 text-center w-16">{t.colNo}</th>
+                                        <th className="p-4 text-center">{t.colUserId}</th>
+                                        <th className="p-4 text-center">{t.colEmpId}</th>
+                                        <th className="p-4">{t.colNickname}</th>
+                                        <th className="p-4">{t.colDept}</th>
+                                        <th className="p-4 text-center">{t.colLevel}</th>
+                                        <th className="p-4 text-center">{t.colActions}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {currentItems.map((p, index) => (
+                                        <tr key={p.id} className="border-b border-gray-100 hover:bg-pink-50 font-medium text-sm">
+                                            <td className="p-4 text-center text-gray-500 font-bold">{indexOfFirstItem + index + 1}</td>
+                                            <td className="p-4 text-center text-primary font-bold">{p.id}</td>
+                                            <td className="p-4 text-center text-gray-600 font-mono">{p.empId}</td>
+                                            <td className="p-4 text-dark font-bold flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-full bg-pink-100 overflow-hidden border border-pink-200 flex-shrink-0">
+                                                    <ImageWithFallback src={(systemAvatars && systemAvatars[p.level]) ? systemAvatars[p.level] : `https://api.dicebear.com/7.x/avataaars/svg?seed=${p.id}&backgroundColor=FFC2D1`} fallbackEmoji="👤" className="w-full h-full object-cover" alt="avatar" />
+                                                </div>
+                                                <span className="truncate">{p.nickname}</span>
+                                            </td>
+                                            <td className="p-4 text-gray-600 font-medium">{p.dept || '-'}</td>
+                                            <td className="p-4 text-center">
+                                                <span className="bg-gradient-to-r from-yellow-100 to-yellow-200 text-yellow-800 px-3 py-1 rounded-full text-xs font-black border border-yellow-400">Lv.{p.level}</span>
+                                            </td>
+                                            <td className="p-4 text-center">
+                                                <button onClick={() => setSelectedPlayer(p)} className="bg-indigo-100 hover:bg-indigo-200 text-indigo-700 px-3 py-1.5 rounded-lg shadow-sm text-xs font-bold transition flex items-center justify-center gap-1 mx-auto" title={t.btnView}>
+                                                    👁️ {t.btnView}
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    {currentItems.length === 0 && (
+                                        <tr><td colSpan="7" className="p-8 text-center text-gray-400 font-bold">{t.noPlayerFound}</td></tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        {totalPages > 1 && (
+                            <div className="p-4 bg-gray-50 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-4">
+                                <span className="text-sm font-bold text-gray-500">{t.page} {currentPage} {t.from} {totalPages} ({filteredPlayers.length} {t.items})</span>
+                                <div className="flex gap-2">
+                                    <button onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} disabled={currentPage === 1} className="px-4 py-2 rounded-xl font-bold text-sm bg-white border-2 border-gray-300 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_3px_0_#D1D5DB] active:shadow-none active:translate-y-[3px]">{t.prevPage}</button>
+                                    <button onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} disabled={currentPage === totalPages} className="px-4 py-2 rounded-xl font-bold text-sm bg-white border-2 border-gray-300 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_3px_0_#D1D5DB] active:shadow-none active:translate-y-[3px]">{t.nextPage}</button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {selectedPlayer && (
+                        <ModalPortal>
+                            <div className="fixed inset-0 z-[9999] overflow-y-auto bg-gray-900/80 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6">
+                                <div className="relative w-full max-w-lg bg-[#FFF0F3] rounded-[40px] shadow-2xl animate-pop-in overflow-hidden border-x border-pink-100 mx-auto">
+                                    <button onClick={() => setSelectedPlayer(null)} className="absolute top-4 right-4 z-[100] bg-white/20 hover:bg-white/40 p-2 px-3 rounded-xl font-black text-white transition-all">✕</button>
+
+                                    <div className="bg-panel px-6 pt-10 pb-8 rounded-b-[40px] text-white shadow-[0_8px_0_#212336] relative z-10">
+                                        <div className="flex gap-4 items-center mb-6">
+                                            <div className="relative">
+                                                <div className="avatar-frame">
+                                                    <div className="w-16 h-16 rounded-full overflow-hidden bg-white">
+                                                        <ImageWithFallback src={(systemAvatars && systemAvatars[selectedPlayer.level]) ? systemAvatars[selectedPlayer.level] : `https://api.dicebear.com/7.x/avataaars/svg?seed=${selectedPlayer.id}&backgroundColor=FFC2D1`} fallbackEmoji="👤" className="w-full h-full object-cover" alt="Avatar" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <p className="text-gold text-xs font-bold tracking-widest uppercase">{selectedPlayer.id}</p>
+                                                <h2 className="text-2xl font-black text-white drop-shadow-md">{t.welcomePrefix}{selectedPlayer.nickname}</h2>
+                                                <p className="text-xs text-gray-300 flex items-center gap-1 mt-1"><span>🏰</span> {selectedPlayer.dept}</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="bg-white text-dark p-5 rounded-2xl shadow-lg mt-2 flex items-center gap-5 border-b-4 border-gray-200">
+                                            <div className="w-20 h-20 bg-gradient-to-br from-pink-100 to-white rounded-2xl flex items-center justify-center text-4xl shadow-inner border-2 border-primary relative overflow-hidden flex-shrink-0">
+                                                <ImageWithFallback src={pLevelData.badge} fallbackEmoji="🔰" className="w-full h-full object-contain" alt="badge" />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex justify-between items-end mb-2 truncate">
+                                                    <span className="font-black text-lg text-panel truncate block">{lang === 'th' ? pLevelData.nameTH : pLevelData.nameEN}</span>
+                                                </div>
+                                                <div className="w-full bg-gray-200 rounded-full h-5 mb-1 overflow-hidden shadow-inner border-2 border-gray-300">
+                                                    <div className="h-full bg-exp rounded-full progress-stripes flex items-center justify-end px-2 transition-all duration-500" style={{ width: `${pProgressPct}%` }}>
+                                                        {pProgressPct > 0 && <span className="text-[10px] text-white font-black drop-shadow-md">{pProgressPct}%</span>}
+                                                    </div>
+                                                </div>
+                                                <div className="flex justify-between items-center mt-1">
+                                                    <span className="text-[11px] font-black text-primary bg-pink-100 border border-pink-200 px-2 py-0.5 rounded-md shadow-sm">{t.level} {selectedPlayer.level}</span>
+                                                    <span className="text-right text-xs text-gray-500 font-bold">{t.quest} {pCompletedCount}/{pMissions.length}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="px-6 mt-8 mb-8 relative z-10 max-h-[45vh] overflow-y-auto pr-4">
+                                        <h3 className="font-black text-xl text-panel flex items-center gap-2 drop-shadow-sm mb-4"><span className="text-2xl">📜</span> {t.currentQuests}</h3>
+                                        <div className="space-y-4">
+                                            {pMissions.length === 0 ? (
+                                                <div className="text-center p-8 bg-white/50 rounded-2xl border-2 border-dashed border-pink-200 font-bold text-gray-400">{t.noQuestsLevel}</div>
+                                            ) : (
+                                                pMissions.map(mission => (
+                                                    <div key={mission.id} className={`quest-card p-4 flex items-center gap-4 ${mission.completed ? 'bg-green-50 border-green-300 opacity-90' : 'shadow-[0_4px_0_#FFE5EC] bg-white border-pink-100'}`}>
+                                                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 border-2 shadow-inner ${mission.completed ? 'bg-gradient-to-br from-green-300 to-green-500 border-green-200 text-white text-3xl' : 'bg-gray-50 border-gray-200 text-pink-300 text-3xl'}`}>
+                                                            {mission.completed ? '✨' : '❓'}
+                                                        </div>
+                                                        <div className="flex-1">
+                                                            <p className="font-black text-lg text-panel leading-tight">{mission.name}</p>
+                                                            <div className="flex items-center gap-2 mt-2">
+                                                                <span className="text-[11px] px-3 py-1 rounded-lg font-black shadow-sm border bg-orange-50 text-orange-600 border-orange-200">
+                                                                    ⏳ {t.pending}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </ModalPortal>
+                    )}
+                </div>
+            );
+        };
+
+        const AdminMissions = ({ missions, setMissions, levels, npcs, t, onRefresh, allPlayers, user, systemAvatars }) => {
+            const [modalState, setModalState] = useState({ isOpen: false, mode: 'create', item: null });
+            const [searchTerm, setSearchTerm] = useState('');
+            const [currentPage, setCurrentPage] = useState(1);
+            const itemsPerPage = 10;
+            
+            const [formData, setFormData] = useState({
+                name: '', level: 1, status: 'Active', modes: [], startDate: '', endDate: '', npcOwner: ''
+            });
+
+            const [grantModalOpen, setGrantModalOpen] = useState(false);
+            const [missionToGrant, setMissionToGrant] = useState(null);
+            const [selectedUsersForGrant, setSelectedUsersForGrant] = useState([]);
+            const [grantSearchTerm, setGrantSearchTerm] = useState('');
+
+            const safeMissions = Array.isArray(missions) ? missions : [];
+            const safeLevels = Array.isArray(levels) ? levels : [];
+            const safeNPCs = Array.isArray(npcs) ? npcs : [];
+
+            const formatDate = (dateStr) => {
+                if (!dateStr) return '';
+                if (typeof dateStr === 'string' && dateStr.includes('T')) {
+                    return dateStr.split('T')[0];
+                }
+                try {
+                    const d = new Date(dateStr);
+                    if (!isNaN(d.getTime())) {
+                        const year = d.getFullYear();
+                        const month = String(d.getMonth() + 1).padStart(2, '0');
+                        const day = String(d.getDate()).padStart(2, '0');
+                        return `${year}-${month}-${day}`;
+                    }
+                } catch(e) {}
+                return dateStr;
+            };
+
+            const openModal = (mode, item = null) => {
+                if(item && mode !== 'create') {
+                    setFormData({
+                        name: item.name, 
+                        level: item.level, 
+                        status: item.status, 
+                        modes: Array.isArray(item.modes) ? item.modes : [], 
+                        startDate: formatDate(item.startDate),
+                        endDate: formatDate(item.endDate),
+                        npcOwner: item.npcOwner
+                    });
+                } else {
+                    setFormData({ name: '', level: 1, status: 'Active', modes: [], startDate: '', endDate: '', npcOwner: '' });
+                }
+                setModalState({ isOpen: true, mode, item });
+            };
+
+            const closeModal = () => setModalState({ isOpen: false, mode: 'create', item: null });
+
+            const handleModeChange = (e) => {
+                if (modalState.mode === 'view') return;
+                const { value, checked } = e.target;
+                setFormData(prev => {
+                    const newModes = checked ? [...prev.modes, value] : prev.modes.filter(m => String(m) !== String(value));
+                    return { ...prev, modes: newModes };
+                });
+            };
+
+            const openGrantModal = (mission) => {
+                setMissionToGrant(mission);
+                setSelectedUsersForGrant([]);
+                setGrantSearchTerm('');
+                setGrantModalOpen(true);
+            };
+
+            const closeGrantModal = () => {
+                setGrantModalOpen(false);
+                setMissionToGrant(null);
+            };
+
+            const handleToggleUserGrant = (userId) => {
+                setSelectedUsersForGrant(prev => 
+                    prev.includes(userId) ? prev.filter(id => String(id) !== String(userId)) : [...prev, userId]
+                );
+            };
+
+            const handleGrantSubmit = async () => {
+                if (selectedUsersForGrant.length === 0) {
+                    GameAlert.error(t.alertError, t.errNoUserSelected, t.btnConfirm);
+                    return;
+                }
+                
+                Swal.fire({ title: t.loading, allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+                
+                const payload = {
+                    missionId: missionToGrant.id,
+                    userIds: selectedUsersForGrant,
+                    npcId: user?.username || 'admin'
+                };
+                
+                try {
+                    const res = await apiCall('grantMissionToUsers', payload);
+                    
+                    Swal.close();
+                    
+                    setTimeout(() => {
+                        if (res.success) {
+                            closeGrantModal();
+                            GameAlert.success(t.alertSuccess, t.grantSuccessMsg, t.btnConfirm);
+                            if (onRefresh) onRefresh(); 
+                        } else {
+                            GameAlert.error(t.alertError, res.message || "เกิดข้อผิดพลาดจากเซิร์ฟเวอร์", t.btnConfirm);
+                        }
+                    }, 150);
+                } catch (err) {
+                    Swal.close();
+                    setTimeout(() => {
+                        GameAlert.error(t.alertError, "การเชื่อมต่อเครือข่ายล้มเหลว", t.btnConfirm);
+                    }, 150);
+                }
+            };
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                if(modalState.mode === 'view') {
+                    closeModal();
+                    return;
+                }
+                if(formData.modes.length === 0) {
+                    GameAlert.error(t.alertError, t.errSelectMode, t.btnConfirm);
+                    return;
+                }
+                if(formData.endDate < formData.startDate) {
+                    GameAlert.error(t.alertError, t.errEndDate, t.btnConfirm);
+                    return;
+                }
+                
+                const newId = Date.now();
+                const missionData = {
+                    id: newId, name: formData.name, level: parseInt(formData.level), status: formData.status, modes: formData.modes, startDate: formData.startDate, endDate: formData.endDate, npcOwner: formData.npcOwner || (safeNPCs.length > 0 ? safeNPCs[0].id : '')
+                };
+
+                if (modalState.mode === 'create') {
+                    Swal.fire({ title: t.loading, allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+                    const res = await apiCall('createMission', missionData);
+                    
+                    if(res.success) {
+                        setMissions([missionData, ...safeMissions]);
+                        setCurrentPage(1);
+                        closeModal();
+                        GameAlert.success(t.alertSuccess, "บันทึกข้อมูลเรียบร้อย", t.btnConfirm);
+                    } else {
+                        GameAlert.error(t.alertError, res.message, t.btnConfirm);
+                    }
+                } else if (modalState.mode === 'edit') {
+                    Swal.fire({ title: t.loading, allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+                    missionData.id = modalState.item.id;
+                    const res = await apiCall('editMission', missionData);
+                    
+                    if(res.success) {
+                        setMissions(safeMissions.map(m => String(m.id) === String(modalState.item.id) ? { ...m, ...missionData, id: m.id } : m));
+                        closeModal();
+                        GameAlert.success(t.alertSuccess, "แก้ไขข้อมูลเรียบร้อย", t.btnConfirm);
+                    } else {
+                        GameAlert.error(t.alertError, res.message, t.btnConfirm);
+                    }
+                }
+            };
+
+            const handleDelete = async (id) => {
+                const res = await GameAlert.confirm(t.alertConfirm, t.confirmDelQuest, t.btnConfirm, t.btnCancel);
+                if(res.isConfirmed) {
+                    Swal.fire({ title: t.loading, allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+                    const apiRes = await apiCall('deleteMission', { id: id });
+                    
+                    if(apiRes.success) {
+                        setMissions(safeMissions.filter(item => String(item.id) !== String(id)));
+                        Swal.fire('ลบแล้ว!', 'ข้อมูลถูกลบเรียบร้อย', 'success');
+                    } else {
+                        GameAlert.error(t.alertError, apiRes.message, t.btnConfirm);
+                    }
+                }
+            };
+
+            const filteredMissions = safeMissions.filter(m => 
+                String(m.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+                String(m.status || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                String(m.level || '').toLowerCase().includes(searchTerm.toLowerCase())
+            );
+
+            const filteredGrantUsers = (Array.isArray(allPlayers) ? allPlayers : []).filter(p => 
+                String(p.nickname || '').toLowerCase().includes(grantSearchTerm.toLowerCase()) || 
+                String(p.empId || '').toLowerCase().includes(grantSearchTerm.toLowerCase())
+            );
+
+            const indexOfLastItem = currentPage * itemsPerPage;
+            const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+            const currentItems = filteredMissions.slice(indexOfFirstItem, indexOfLastItem);
+            const totalPages = Math.ceil(filteredMissions.length / itemsPerPage);
+            const isReadOnly = modalState.mode === 'view';
+
+            return (
+                <>
+                    <div className="space-y-6 animate-pop-in max-w-6xl mx-auto">
+                        <div className="flex flex-col md:flex-row justify-between items-center bg-white p-4 rounded-2xl shadow-sm border-2 border-gray-200 gap-4">
+                            <h1 className="text-3xl font-black text-panel flex items-center gap-3"><span>📜</span> {t.missionManageTitle}</h1>
+                            <div className="flex flex-wrap justify-end gap-2 w-full md:w-auto items-center">
+                                <input 
+                                    type="text" 
+                                    placeholder={t.searchPlaceholder} 
+                                    className="game-input text-sm !py-2 w-full md:w-48" 
+                                    value={searchTerm}
+                                    onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                                />
+                                <button onClick={onRefresh} className="game-button bg-gradient-to-b from-gray-100 to-gray-200 !border-gray-300 !text-gray-700 !shadow-[0_4px_0_#D1D5DB] px-4 py-2 text-sm active:!shadow-[0_0px_0_#D1D5DB] flex items-center gap-2">🔄 {t.refresh}</button>
+                                <button onClick={() => openModal('create')} className="game-button px-4 py-2 text-sm flex items-center gap-2">➕ {t.createQuestBtn}</button>
+                            </div>
+                        </div>
+
+                        <div className="bg-white rounded-2xl shadow-md border-2 border-gray-200 overflow-hidden">
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left min-w-[800px]">
+                                    <thead className="bg-panel text-white text-sm whitespace-nowrap">
+                                        <tr>
+                                            <th className="p-4 text-center w-16">{t.colNo}</th>
+                                            <th className="p-4">{t.colQuestName}</th>
+                                            <th className="p-4 text-center">{t.colLevel}</th>
+                                            <th className="p-4 text-center">{t.colDuration}</th>
+                                            <th className="p-4 text-center">{t.colMode}</th>
+                                            <th className="p-4 text-center">{t.colStatus}</th>
+                                            <th className="p-4 text-center">{t.colActions}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {currentItems.map((m, index) => {
+                                            const mModes = Array.isArray(m.modes) ? m.modes : [];
+                                            return (
+                                                <tr key={m.id} className="border-b border-gray-100 hover:bg-pink-50 font-medium text-sm">
+                                                    <td className="p-4 text-center text-gray-500">{indexOfFirstItem + index + 1}</td>
+                                                    <td className="p-4 text-dark font-bold">{m.name}</td>
+                                                    <td className="p-4 text-center">
+                                                        <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-bold border border-yellow-300 whitespace-nowrap">Lv.{m.level}</span>
+                                                    </td>
+                                                    <td className="p-4 text-center text-xs text-gray-600 whitespace-nowrap">
+                                                        {formatDate(m.startDate)} <br/>{t.to}<br/> {formatDate(m.endDate)}
+                                                    </td>
+                                                    <td className="p-4 text-center">
+                                                        <div className="flex flex-col gap-1 items-center">
+                                                            {mModes.map(mode => (
+                                                                <span key={mode} className={`px-2 py-0.5 rounded-lg text-[10px] font-bold whitespace-nowrap ${mode === 'QR' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}`}>
+                                                                    {mode === 'QR' ? 'QR Code' : 'NPC'}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    </td>
+                                                    <td className="p-4 text-center">
+                                                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${m.status === 'Active' ? 'bg-green-100 text-green-700 border border-green-300' : 'bg-gray-200 text-gray-600 border border-gray-300'}`}>
+                                                            {m.status === 'Active' ? '🟢 Active' : '🔴 Inactive'}
+                                                        </span>
+                                                    </td>
+                                                    <td className="p-4">
+                                                        <div className="flex flex-wrap justify-center gap-2">
+                                                            {mModes.includes('NPC') && <button onClick={() => openGrantModal(m)} className="bg-green-100 hover:bg-green-200 text-green-700 px-2 py-1 rounded shadow-sm text-xs font-bold transition flex items-center gap-1" title={t.btnGrant}>✅ {t.btnGrant}</button>}
+                                                            <button onClick={() => openModal('view', m)} className="bg-indigo-100 hover:bg-indigo-200 text-indigo-700 px-2 py-1 rounded shadow-sm text-xs font-bold transition flex items-center gap-1" title={t.btnView}>👁️ {t.btnView}</button>
+                                                            {mModes.includes('QR') && <button onClick={() => openModal('qr', m)} className="bg-purple-100 hover:bg-purple-200 text-purple-700 px-2 py-1 rounded shadow-sm text-xs font-bold transition flex items-center gap-1" title={t.btnQR}>📱 {t.btnQR}</button>}
+                                                            <button onClick={() => openModal('edit', m)} className="bg-blue-100 hover:bg-blue-200 text-blue-700 px-2 py-1 rounded shadow-sm text-xs font-bold transition flex items-center gap-1" title={t.btnEdit}>✏️ {t.btnEdit}</button>
+                                                            <button onClick={() => handleDelete(m.id)} className="bg-red-100 hover:bg-red-200 text-red-700 px-2 py-1 rounded shadow-sm text-xs font-bold transition flex items-center gap-1" title={t.btnDelete}>🗑️ {t.btnDelete}</button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                        {currentItems.length === 0 && (
+                                            <tr><td colSpan="7" className="p-8 text-center text-gray-400 font-bold">{t.noQuestFound}</td></tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            {totalPages > 1 && (
+                                <div className="p-4 bg-gray-50 border-t border-gray-200 flex justify-between items-center">
+                                    <span className="text-sm font-bold text-gray-500">{t.page} {currentPage} {t.from} {totalPages} ({filteredMissions.length} {t.items})</span>
+                                    <div className="flex gap-2">
+                                        <button onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} disabled={currentPage === 1} className="px-4 py-2 rounded-lg font-bold text-sm bg-white border border-gray-300 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">{t.prevPage}</button>
+                                        <button onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} disabled={currentPage === totalPages} className="px-4 py-2 rounded-lg font-bold text-sm bg-white border border-gray-300 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">{t.nextPage}</button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {modalState.isOpen && (
+                        <ModalPortal>
+                            <div className="fixed inset-0 z-[9999] overflow-y-auto bg-gray-900/60 backdrop-blur-sm">
+                                <div className="flex min-h-screen items-center justify-center p-4 text-center sm:p-6">
+                                    <div className="relative w-full max-w-2xl bg-white rounded-3xl p-6 sm:p-8 animate-pop-in border-4 border-panel shadow-2xl text-left transition-all my-8 mx-auto">
+                                        {modalState.mode === 'qr' ? (
+                                            <div className="text-center py-4">
+                                                <h2 className="text-2xl font-black text-panel mb-2">📱 {t.qrForQuest}</h2>
+                                                <p className="text-gray-500 font-bold mb-6">{modalState.item?.name}</p>
+                                                <div className="w-64 h-64 mx-auto bg-gray-50 rounded-3xl p-4 shadow-inner mb-6 border-4 border-pink-200 flex items-center justify-center">
+                                                    <img src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=SLJ_MISSION_${modalState.item?.id}`} alt="QR Code" className="w-full h-full object-contain mix-blend-multiply" />
+                                                </div>
+                                                <p className="text-sm text-primary font-bold mb-8">{t.scanInstruction}</p>
+                                                <button type="button" onClick={closeModal} className="w-full sm:w-1/2 mx-auto block py-4 game-button game-button-blue text-lg">{t.btnCloseWindow}</button>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <h2 className="text-2xl font-black text-panel mb-6 border-b-2 pb-3 flex items-center gap-2">
+                                                    <span>{modalState.mode === 'create' ? '➕' : modalState.mode === 'edit' ? '✏️' : '👁️'}</span>
+                                                    {modalState.mode === 'create' ? t.modalCreateQuest : modalState.mode === 'edit' ? t.modalEditQuest : t.modalViewQuest}
+                                                </h2>
+                                                <form onSubmit={handleSubmit} className="space-y-5">
+                                                    <div>
+                                                        <label className="font-bold text-gray-700 block mb-1">{t.questNameLabel}</label>
+                                                        <input type="text" required className="game-input" placeholder={t.questNamePlaceholder} 
+                                                            value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} disabled={isReadOnly} />
+                                                    </div>
+                                                    
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                                        <div>
+                                                            <label className="font-bold text-gray-700 block mb-1">{t.levelAvailLabel}</label>
+                                                            <select className="game-input" value={formData.level} onChange={e => setFormData({...formData, level: e.target.value})} disabled={isReadOnly}>
+                                                                {safeLevels.map(l => <option key={l.id} value={l.id}>Lv.{l.id} {l.nameTH}</option>)}
+                                                            </select>
+                                                        </div>
+                                                        <div>
+                                                            <label className="font-bold text-gray-700 block mb-1">{t.npcOwnerLabel}</label>
+                                                            <select className="game-input" value={formData.npcOwner} onChange={e => setFormData({...formData, npcOwner: e.target.value})} disabled={isReadOnly}>
+                                                                <option value="">{t.selectNpcPlaceholder}</option>
+                                                                {safeNPCs.map(n => <option key={n.id} value={n.id}>🧙‍♂️ {n.name} ({n.role})</option>)}
+                                                            </select>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                                        <div className="p-4 bg-gray-50 rounded-xl border-2 border-gray-200">
+                                                            <label className="font-bold text-panel block mb-3 border-b pb-2">{t.rewardModeLabel}</label>
+                                                            <div className="space-y-3">
+                                                                <label className={`flex items-center gap-3 p-2 rounded-lg transition ${isReadOnly ? 'opacity-70' : 'cursor-pointer hover:bg-white'}`}>
+                                                                    <input type="checkbox" value="QR" checked={formData.modes.includes('QR')} onChange={handleModeChange} disabled={isReadOnly} className="w-5 h-5 rounded border-pink-300 text-pink-500"/>
+                                                                    <span className="font-bold text-gray-700">📱 {t.modeQR}</span>
+                                                                </label>
+                                                                <label className={`flex items-center gap-3 p-2 rounded-lg transition ${isReadOnly ? 'opacity-70' : 'cursor-pointer hover:bg-white'}`}>
+                                                                    <input type="checkbox" value="NPC" checked={formData.modes.includes('NPC')} onChange={handleModeChange} disabled={isReadOnly} className="w-5 h-5 rounded border-pink-300 text-pink-500"/>
+                                                                    <span className="font-bold text-gray-700">🧙‍♂️ {t.modeNPC}</span>
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <div className="space-y-5">
+                                                            <div>
+                                                                <label className="font-bold text-gray-700 block mb-1">{t.statusLabel}</label>
+                                                                <select className="game-input" value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} disabled={isReadOnly}>
+                                                                    <option value="Active">{t.statusActive}</option>
+                                                                    <option value="Inactive">{t.statusInactive}</option>
+                                                                </select>
+                                                            </div>
+                                                            <div className="grid grid-cols-2 gap-3">
+                                                                <div>
+                                                                    <label className="font-bold text-gray-700 block mb-1 text-sm">{t.startDateLabel}</label>
+                                                                    <input type="date" required className="game-input text-sm px-2" value={formData.startDate} onChange={e => setFormData({...formData, startDate: e.target.value})} disabled={isReadOnly} />
+                                                                </div>
+                                                                <div>
+                                                                    <label className="font-bold text-gray-700 block mb-1 text-sm">{t.endDateLabel}</label>
+                                                                    <input type="date" required className="game-input text-sm px-2" value={formData.endDate} onChange={e => setFormData({...formData, endDate: e.target.value})} disabled={isReadOnly} />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex gap-4 mt-8 pt-6 border-t-2 border-gray-100">
+                                                        {isReadOnly ? (
+                                                            <button type="button" onClick={closeModal} className="w-full py-4 game-button game-button-blue text-lg">{t.btnCloseWindow}</button>
+                                                        ) : (
+                                                            <>
+                                                                <button type="button" onClick={closeModal} className="flex-1 py-4 game-button game-button-red text-lg shadow-[0_6px_0_#991B1B]">{t.btnCancel}</button>
+                                                                <button type="submit" className="flex-1 py-4 game-button game-button-green text-lg shadow-[0_6px_0_#166534]">💾 {t.btnSave}</button>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                </form>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </ModalPortal>
+                    )}
+
+                    {grantModalOpen && missionToGrant && (
+                        <ModalPortal>
+                            <div className="fixed inset-0 z-[9999] overflow-y-auto bg-gray-900/60 backdrop-blur-sm">
+                                <div className="flex min-h-screen items-center justify-center p-4 text-center sm:p-6">
+                                    <div className="relative w-full max-w-2xl bg-[#FFF0F3] rounded-[30px] p-6 sm:p-8 animate-pop-in border-4 border-primary shadow-2xl text-left transition-all my-8 mx-auto flex flex-col max-h-[90vh]">
+                                        <div className="flex justify-between items-center mb-4 pb-4 border-b-2 border-pink-200">
+                                            <div>
+                                                <h2 className="text-2xl font-black text-panel flex items-center gap-2"><span>✅</span> {t.modalGrantTitle}</h2>
+                                                <p className="text-gray-500 font-bold mt-1">ภารกิจ: <span className="text-primary">{missionToGrant.name}</span></p>
+                                            </div>
+                                            <button onClick={closeGrantModal} className="text-gray-400 hover:text-red-500 font-black text-2xl transition">✕</button>
+                                        </div>
+                                        
+                                        <div className="flex flex-col sm:flex-row gap-3 mb-4">
+                                            <input 
+                                                type="text" 
+                                                placeholder={t.grantSearchPlaceholder} 
+                                                className="game-input text-sm flex-1" 
+                                                value={grantSearchTerm}
+                                                onChange={(e) => setGrantSearchTerm(e.target.value)}
+                                            />
+                                            <div className="flex gap-2">
+                                                <button onClick={() => setSelectedUsersForGrant(filteredGrantUsers.map(u => u.id))} className="bg-white border-2 border-primary text-primary px-3 py-2 rounded-xl text-xs font-bold hover:bg-pink-50 transition">{t.btnSelectAll}</button>
+                                                <button onClick={() => setSelectedUsersForGrant([])} className="bg-white border-2 border-gray-300 text-gray-500 px-3 py-2 rounded-xl text-xs font-bold hover:bg-gray-50 transition">{t.btnClearAll}</button>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex-1 overflow-y-auto pr-2 space-y-2 bg-white rounded-2xl border-2 border-pink-100 p-2">
+                                            {filteredGrantUsers.length === 0 ? (
+                                                <div className="text-center p-6 text-gray-400 font-bold">{t.noPlayerFound}</div>
+                                            ) : (
+                                                filteredGrantUsers.map(p => (
+                                                    <label key={p.id} className={`flex items-center gap-4 p-3 rounded-xl cursor-pointer transition border-2 ${selectedUsersForGrant.includes(p.id) ? 'bg-pink-50 border-primary' : 'bg-gray-50 border-transparent hover:bg-gray-100'}`}>
+                                                        <input 
+                                                            type="checkbox" 
+                                                            className="w-5 h-5 rounded border-pink-300 text-primary accent-primary cursor-pointer" 
+                                                            checked={selectedUsersForGrant.includes(p.id)}
+                                                            onChange={() => handleToggleUserGrant(p.id)}
+                                                        />
+                                                        <div className="w-10 h-10 rounded-full bg-pink-200 overflow-hidden border border-pink-300 flex-shrink-0">
+                                                            <ImageWithFallback src={(systemAvatars && systemAvatars[p.level]) ? systemAvatars[p.level] : `https://api.dicebear.com/7.x/avataaars/svg?seed=${p.id}&backgroundColor=FFC2D1`} fallbackEmoji="👤" className="w-full h-full object-cover" />
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="font-bold text-dark truncate">{p.nickname} <span className="text-xs text-gray-400 font-mono ml-2">({p.empId})</span></p>
+                                                        </div>
+                                                        <div className="flex-shrink-0">
+                                                            <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-md text-[10px] font-black border border-yellow-300">Lv.{p.level}</span>
+                                                        </div>
+                                                    </label>
+                                                ))
+                                            )}
+                                        </div>
+
+                                        <div className="mt-6 pt-4 border-t-2 border-pink-200 flex justify-between items-center">
+                                            <span className="text-sm font-bold text-gray-500">เลือกแล้ว: <span className="text-primary text-lg">{selectedUsersForGrant.length}</span> คน</span>
+                                            <button onClick={handleGrantSubmit} className="py-3 px-8 game-button game-button-green shadow-[0_4px_0_#166534] text-lg">💾 {t.btnConfirmGrant}</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </ModalPortal>
+                    )}
+                </>
+            );
+        };
+
+        const AdminLevels = ({ levels, setLevels, t, onRefresh }) => {
+            const [modalState, setModalState] = useState({ isOpen: false, mode: 'create', item: null });
+            const [searchTerm, setSearchTerm] = useState('');
+            const [currentPage, setCurrentPage] = useState(1);
+            const itemsPerPage = 10;
+            
+            const [formData, setFormData] = useState({
+                id: '', nameTH: '', nameEN: '', badgeUrl: ''
+            });
+
+            const safeLevels = Array.isArray(levels) ? levels : [];
+
+            const openModal = (mode, item = null) => {
+                if(item && mode !== 'create') {
+                    setFormData({ id: item.id, nameTH: item.nameTH, nameEN: item.nameEN, badgeUrl: item.badge });
+                } else {
+                    setFormData({ id: '', nameTH: '', nameEN: '', badgeUrl: '' });
+                }
+                setModalState({ isOpen: true, mode, item });
+            };
+
+            const closeModal = () => setModalState({ isOpen: false, mode: 'create', item: null });
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                if(modalState.mode === 'view') {
+                    closeModal(); return;
+                }
+
+                const newL = {
+                    id: parseInt(formData.id), nameTH: formData.nameTH, nameEN: formData.nameEN, badge: formData.badgeUrl || '🛡️'
+                };
+                
+                if (modalState.mode === 'create') {
+                    if(safeLevels.some(l => String(l.id) === String(newL.id))) {
+                        GameAlert.error(t.alertError, t.errDupLevel, t.btnConfirm);
+                        return;
+                    }
+
+                    Swal.fire({ title: t.loading, allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+                    const res = await apiCall('createLevel', newL);
+                    
+                    if(res.success) {
+                        setLevels([...safeLevels, newL].sort((a,b) => a.id - b.id));
+                        setCurrentPage(1);
+                        closeModal();
+                        GameAlert.success(t.alertSuccess, "บันทึกข้อมูลเรียบร้อย", t.btnConfirm);
+                    } else {
+                        GameAlert.error(t.alertError, res.message, t.btnConfirm);
+                    }
+
+                } else if (modalState.mode === 'edit') {
+                    Swal.fire({ title: t.loading, allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+                    const res = await apiCall('editLevel', newL);
+                    
+                    if(res.success) {
+                        setLevels(safeLevels.map(l => String(l.id) === String(modalState.item.id) ? newL : l).sort((a,b) => a.id - b.id));
+                        closeModal();
+                        GameAlert.success(t.alertSuccess, "แก้ไขข้อมูลเรียบร้อย", t.btnConfirm);
+                    } else {
+                        GameAlert.error(t.alertError, res.message, t.btnConfirm);
+                    }
+                }
+            };
+
+            const handleDelete = async (id) => {
+                const res = await GameAlert.confirm(t.alertConfirm, t.confirmDelLevel, t.btnConfirm, t.btnCancel);
+                if(res.isConfirmed) {
+                    Swal.fire({ title: t.loading, allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+                    const apiRes = await apiCall('deleteLevel', { id: id });
+                    
+                    if(apiRes.success) {
+                        setLevels(safeLevels.filter(item => String(item.id) !== String(id)));
+                        Swal.fire('ลบแล้ว!', 'ข้อมูลถูกลบเรียบร้อย', 'success');
+                    } else {
+                        GameAlert.error(t.alertError, apiRes.message, t.btnConfirm);
+                    }
+                }
+            };
+
+            const filteredLevels = safeLevels.filter(l => 
+                String(l.nameTH || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+                String(l.nameEN || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                String(l.id || '').toLowerCase().includes(searchTerm.toLowerCase())
+            );
+
+            const indexOfLastItem = currentPage * itemsPerPage;
+            const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+            const currentItems = filteredLevels.slice(indexOfFirstItem, indexOfLastItem);
+            const totalPages = Math.ceil(filteredLevels.length / itemsPerPage);
+            const isReadOnly = modalState.mode === 'view';
+
+            return (
+                <>
+                    <div className="space-y-6 animate-pop-in max-w-6xl mx-auto">
+                         <div className="flex flex-col md:flex-row justify-between items-center bg-white p-4 rounded-2xl shadow-sm border-2 border-gray-200 gap-4">
+                            <h1 className="text-3xl font-black text-panel flex items-center gap-3"><span>🌟</span> {t.levelManageTitle}</h1>
+                            <div className="flex flex-wrap justify-end gap-2 w-full md:w-auto items-center">
+                                <input 
+                                    type="text" 
+                                    placeholder={t.searchPlaceholder} 
+                                    className="game-input text-sm !py-2 w-full md:w-48" 
+                                    value={searchTerm}
+                                    onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                                />
+                                <button onClick={onRefresh} className="game-button bg-gradient-to-b from-gray-100 to-gray-200 !border-gray-300 !text-gray-700 !shadow-[0_4px_0_#D1D5DB] px-4 py-2 text-sm active:!shadow-[0_0px_0_#D1D5DB] flex items-center gap-2">🔄 {t.refresh}</button>
+                                <button onClick={() => openModal('create')} className="game-button px-4 py-2 text-sm flex items-center gap-2">➕ {t.createLevelBtn}</button>
+                            </div>
+                        </div>
+
+                        <div className="bg-white rounded-2xl shadow-md border-2 border-gray-200 overflow-hidden">
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left min-w-[800px]">
+                                    <thead className="bg-panel text-white text-sm whitespace-nowrap">
+                                        <tr>
+                                            <th className="p-4 text-center w-20">Level</th>
+                                            <th className="p-4">{t.colLevelNameTH}</th>
+                                            <th className="p-4">{t.colLevelNameEN}</th>
+                                            <th className="p-4 text-center">{t.colBadge}</th>
+                                            <th className="p-4 text-center">{t.colActions}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {currentItems.map((l) => (
+                                            <tr key={l.id} className="border-b border-gray-100 hover:bg-yellow-50 font-medium text-sm">
+                                                <td className="p-4 text-center text-dark font-black text-lg">{l.id}</td>
+                                                <td className="p-4 text-dark font-bold">{t.levelNameTHLabel}: {l.nameTH}</td>
+                                                <td className="p-4 text-gray-500 font-bold">{t.levelNameENLabel}: {l.nameEN}</td>
+                                                <td className="p-4 text-center">
+                                                    <div className="w-12 h-12 mx-auto bg-gray-50 rounded-xl border-2 border-gray-200 flex items-center justify-center text-2xl overflow-hidden shadow-inner">
+                                                        <ImageWithFallback src={l.badge} fallbackEmoji="🛡️" className="w-full h-full object-cover" alt="badge" />
+                                                    </div>
+                                                </td>
+                                                <td className="p-4">
+                                                    <div className="flex flex-wrap justify-center gap-2">
+                                                        <button onClick={() => openModal('view', l)} className="bg-indigo-100 hover:bg-indigo-200 text-indigo-700 px-3 py-1.5 rounded-lg shadow-sm text-xs font-bold transition flex items-center gap-1" title={t.btnView}>👁️ {t.btnView}</button>
+                                                        <button onClick={() => openModal('edit', l)} className="bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1.5 rounded-lg shadow-sm text-xs font-bold transition flex items-center gap-1" title={t.btnEdit}>✏️ {t.btnEdit}</button>
+                                                        <button onClick={() => handleDelete(l.id)} className="bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1.5 rounded-lg shadow-sm text-xs font-bold transition flex items-center gap-1" title={t.btnDelete}>🗑️ {t.btnDelete}</button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                        {currentItems.length === 0 && (
+                                            <tr><td colSpan="5" className="p-8 text-center text-gray-400 font-bold">{t.noLevelFound}</td></tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            {totalPages > 1 && (
+                                <div className="p-4 bg-gray-50 border-t border-gray-200 flex justify-between items-center">
+                                    <span className="text-sm font-bold text-gray-500">{t.page} {currentPage} {t.from} {totalPages} ({filteredLevels.length} {t.items})</span>
+                                    <div className="flex gap-2">
+                                        <button onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} disabled={currentPage === 1} className="px-4 py-2 rounded-lg font-bold text-sm bg-white border border-gray-300 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">{t.prevPage}</button>
+                                        <button onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} disabled={currentPage === totalPages} className="px-4 py-2 rounded-lg font-bold text-sm bg-white border border-gray-300 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">{t.nextPage}</button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {modalState.isOpen && (
+                        <ModalPortal>
+                            <div className="fixed inset-0 z-[9999] overflow-y-auto bg-gray-900/60 backdrop-blur-sm">
+                                <div className="flex min-h-screen items-center justify-center p-4 text-center sm:p-6">
+                                    <div className="relative w-full max-w-md bg-white rounded-3xl p-6 sm:p-8 animate-pop-in border-4 border-gold shadow-2xl text-left transition-all my-8 mx-auto">
+                                        <h2 className="text-2xl font-black text-panel mb-6 border-b-2 border-gray-100 pb-4 flex items-center gap-2">
+                                            <span>{modalState.mode === 'create' ? '➕' : modalState.mode === 'edit' ? '✏️' : '👁️'}</span>
+                                            {modalState.mode === 'create' ? t.modalCreateLevel : modalState.mode === 'edit' ? t.modalEditLevel : t.modalViewLevel}
+                                        </h2>
+                                        <form onSubmit={handleSubmit} className="space-y-4">
+                                            <div>
+                                                <label className="font-bold text-gray-700 block mb-1 text-sm">{t.levelNumLabel}</label>
+                                                <input type="number" required min="1" className="game-input text-lg" placeholder="e.g. 6" 
+                                                    value={formData.id} onChange={e => setFormData({...formData, id: e.target.value})} disabled={isReadOnly || modalState.mode === 'edit'} />
+                                            </div>
+                                            <div>
+                                                <label className="font-bold text-gray-700 block mb-1 text-sm">{t.levelNameTHLabel}</label>
+                                                <input type="text" required className="game-input" placeholder="e.g. นักรบแห่งแสง"
+                                                    value={formData.nameTH} onChange={e => setFormData({...formData, nameTH: e.target.value})} disabled={isReadOnly} />
+                                            </div>
+                                            <div>
+                                                <label className="font-bold text-gray-700 block mb-1 text-sm">{t.levelNameENLabel}</label>
+                                                <input type="text" required className="game-input" placeholder="e.g. Light Warrior"
+                                                    value={formData.nameEN} onChange={e => setFormData({...formData, nameEN: e.target.value})} disabled={isReadOnly} />
+                                            </div>
+                                            <div>
+                                                <label className="font-bold text-gray-700 block mb-1 text-sm">{t.badgeUrlLabel}</label>
+                                                <input type="text" placeholder={t.badgeUrlPlaceholder} className="game-input" 
+                                                    value={formData.badgeUrl} onChange={e => setFormData({...formData, badgeUrl: e.target.value})} disabled={isReadOnly} />
+                                            </div>
+                                            <div className="flex gap-4 mt-8 pt-4">
+                                                {isReadOnly ? (
+                                                    <button type="button" onClick={closeModal} className="w-full py-4 game-button game-button-blue text-lg">{t.btnCloseWindow}</button>
+                                                ) : (
+                                                    <>
+                                                        <button type="button" onClick={closeModal} className="flex-1 py-4 game-button game-button-red text-lg shadow-[0_6px_0_#991B1B]">{t.btnCancel}</button>
+                                                        <button type="submit" className="flex-1 py-4 game-button game-button-green text-lg shadow-[0_6px_0_#166534]">💾 {t.btnSave}</button>
+                                                    </>
+                                                )}
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </ModalPortal>
+                    )}
+                </>
+            );
+        }
+
+        const AdminNPCs = ({ npcs, setNpcs, t, onRefresh }) => {
+            const [modalState, setModalState] = useState({ isOpen: false, mode: 'create', item: null });
+            const [searchTerm, setSearchTerm] = useState('');
+            const [currentPage, setCurrentPage] = useState(1);
+            const itemsPerPage = 10;
+            const fileInputRef = useRef(null);
+
+            const safeNPCs = Array.isArray(npcs) ? npcs : [];
+
+            const [formData, setFormData] = useState({
+                username: '', password: '', empId: '', name: '', nickname: '', role: 'Staff'
+            });
+
+            const openModal = (mode, item = null) => {
+                if(item && mode !== 'create') {
+                    setFormData({ username: item.username, password: item.password, empId: item.id, name: item.name, nickname: item.nickname, role: item.role });
+                } else {
+                    setFormData({ username: '', password: '', empId: '', name: '', nickname: '', role: 'Staff' });
+                }
+                setModalState({ isOpen: true, mode, item });
+            };
+
+            const closeModal = () => setModalState({ isOpen: false, mode: 'create', item: null });
+            
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                if(modalState.mode === 'view') {
+                    closeModal(); return;
+                }
+
+                const newN = {
+                    id: formData.empId, username: formData.username, password: formData.password, name: formData.name, nickname: formData.nickname, role: formData.role, status: 'Active'
+                };
+                
+                if (modalState.mode === 'create') {
+                    if(safeNPCs.some(n => String(n.id) === String(formData.empId))) {
+                        GameAlert.error(t.alertError, t.errDupNpc, t.btnConfirm);
+                        return;
+                    }
+
+                    Swal.fire({ title: t.loading, allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+                    const res = await apiCall('createNPC', newN);
+
+                    if(res.success) {
+                        setNpcs([newN, ...safeNPCs]);
+                        setCurrentPage(1);
+                        closeModal();
+                        GameAlert.success(t.alertSuccess, "บันทึกข้อมูลเรียบร้อย", t.btnConfirm);
+                    } else {
+                        GameAlert.error(t.alertError, res.message, t.btnConfirm);
+                    }
+                    
+                } else if (modalState.mode === 'edit') {
+                    Swal.fire({ title: t.loading, allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+                    const res = await apiCall('editNPC', newN);
+                    
+                    if(res.success) {
+                        setNpcs(safeNPCs.map(n => String(n.id) === String(modalState.item.id) ? newN : n));
+                        closeModal();
+                        GameAlert.success(t.alertSuccess, "แก้ไขข้อมูลเรียบร้อย", t.btnConfirm);
+                    } else {
+                        GameAlert.error(t.alertError, res.message, t.btnConfirm);
+                    }
+                }
+            };
+
+            const handleDelete = async (id) => {
+                const res = await GameAlert.confirm(t.alertConfirm, t.confirmDelNpc, t.btnConfirm, t.btnCancel);
+                if(res.isConfirmed) {
+                    Swal.fire({ title: t.loading, allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+                    const apiRes = await apiCall('deleteNPC', { id: id });
+                    
+                    if(apiRes.success) {
+                        setNpcs(safeNPCs.filter(item => String(item.id) !== String(id)));
+                        Swal.fire('ลบแล้ว!', 'ข้อมูลถูกลบเรียบร้อย', 'success');
+                    } else {
+                        GameAlert.error(t.alertError, apiRes.message, t.btnConfirm);
+                    }
+                }
+            };
+
+            const handleExport = () => {
+                const headers = ["Username", "Password", "รหัสพนักงาน", "ชื่อ-สกุล", "ชื่อเล่น", "สิทธิ์"];
+                const csvRows = [headers.join(',')];
+                
+                safeNPCs.forEach(n => {
+                    csvRows.push(`${n.username || ''},${n.password || ''},${n.id || ''},${n.name || ''},${n.nickname || ''},${n.role || ''}`);
+                });
+                
+                const csvString = "\uFEFF" + csvRows.join('\n');
+                const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.setAttribute('href', url);
+                link.setAttribute('download', 'npc_list.csv');
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            };
+
+            const handleImportClick = () => fileInputRef.current.click();
+
+            const handleImport = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const text = event.target.result;
+                    const lines = text.split('\n');
+                    const newNpcs = [];
+                    
+                    for (let i = 1; i < lines.length; i++) {
+                        if (!lines[i].trim()) continue;
+                        const cols = lines[i].split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+                        
+                        if (cols.length >= 6) {
+                            if(!safeNPCs.some(existing => String(existing.id) === String(cols[2])) && !newNpcs.some(n => String(n.id) === String(cols[2]))) {
+                                newNpcs.push({
+                                    username: cols[0], password: cols[1], id: cols[2], name: cols[3], nickname: cols[4], role: cols[5], status: 'Active'
+                                });
+                            }
+                        }
+                    }
+                    
+                    if (newNpcs.length > 0) {
+                        setNpcs([...safeNPCs, ...newNpcs]);
+                        GameAlert.success(t.alertSuccess, `${t.importSuccess} ${newNpcs.length} ${t.importSkip}`, t.btnConfirm);
+                    } else {
+                        GameAlert.error(t.alertError, t.importFail, t.btnConfirm);
+                    }
+                    e.target.value = null;
+                };
+                reader.readAsText(file, 'utf-8');
+            };
+
+            const filteredNPCs = safeNPCs.filter(n => 
+                String(n.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+                String(n.nickname || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                String(n.id || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                String(n.role || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                String(n.username || '').toLowerCase().includes(searchTerm.toLowerCase())
+            );
+
+            const indexOfLastItem = currentPage * itemsPerPage;
+            const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+            const currentItems = filteredNPCs.slice(indexOfFirstItem, indexOfLastItem);
+            const totalPages = Math.ceil(filteredNPCs.length / itemsPerPage);
+            const isReadOnly = modalState.mode === 'view';
+
+            return (
+                <>
+                    <div className="space-y-6 animate-pop-in max-w-6xl mx-auto">
+                        <div className="flex flex-col md:flex-row justify-between items-center bg-white p-4 rounded-2xl shadow-sm border-2 border-gray-200 gap-4">
+                            <h1 className="text-3xl font-black text-panel flex items-center gap-3"><span>🧙‍♂️</span> {t.npcManageTitle}</h1>
+                            
+                            <div className="flex flex-wrap justify-end gap-2 w-full md:w-auto items-center">
+                                <input 
+                                    type="text" 
+                                    placeholder={t.searchPlaceholder} 
+                                    className="game-input text-sm !py-2 w-full md:w-48" 
+                                    value={searchTerm}
+                                    onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                                />
+                                <button onClick={onRefresh} className="game-button bg-gradient-to-b from-gray-100 to-gray-200 !border-gray-300 !text-gray-700 !shadow-[0_4px_0_#D1D5DB] px-4 py-2 text-sm active:!shadow-[0_0px_0_#D1D5DB] flex items-center gap-2">🔄 {t.refresh}</button>
+                                
+                                <input type="file" accept=".csv" ref={fileInputRef} onChange={handleImport} className="hidden" />
+                                <button onClick={handleImportClick} className="game-button bg-gradient-to-b from-purple-400 to-purple-600 !border-purple-300 !shadow-[0_4px_0_#6B21A8] px-4 py-2 text-sm active:!shadow-[0_0px_0_#6B21A8] flex items-center gap-2">📥 {t.btnImport}</button>
+                                
+                                <button onClick={handleExport} className="game-button bg-gradient-to-b from-orange-400 to-orange-500 !border-orange-200 !shadow-[0_4px_0_#C2410C] px-4 py-2 text-sm active:!shadow-[0_0px_0_#C2410C] flex items-center gap-2">📤 {t.btnExport}</button>
+                                
+                                <button onClick={() => openModal('create')} className="game-button px-4 py-2 text-sm flex items-center gap-2">➕ {t.createNpcBtn}</button>
+                            </div>
+                        </div>
+
+                        <div className="bg-white rounded-2xl shadow-md border-2 border-gray-200 overflow-hidden">
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left min-w-[800px]">
+                                    <thead className="bg-panel text-white text-sm whitespace-nowrap">
+                                        <tr>
+                                            <th className="p-4 text-center">{t.empIdLabel}</th>
+                                            <th className="p-4">{t.colNameLastname}</th>
+                                            <th className="p-4 text-center">{t.colNickname}</th>
+                                            <th className="p-4 text-center">{t.colRole}</th>
+                                            <th className="p-4 text-center">{t.colActions}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {currentItems.map(n => (
+                                            <tr key={n.id} className="border-b border-gray-100 hover:bg-gray-50 font-medium text-sm">
+                                                <td className="p-4 text-gray-500 font-mono text-center font-bold">{n.id}</td>
+                                                <td className="p-4 text-dark font-bold flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-xl">🧙‍♂️</div> {n.name}
+                                                </td>
+                                                <td className="p-4 text-center text-gray-600 font-bold">{n.nickname}</td>
+                                                <td className="p-4 text-center"><span className={`px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm border ${n.role==='Admin' ? 'bg-purple-100 text-purple-800 border-purple-200' : 'bg-blue-100 text-blue-800 border-blue-200'}`}>{n.role}</span></td>
+                                                <td className="p-4">
+                                                    <div className="flex flex-wrap justify-center gap-2">
+                                                        <button onClick={() => openModal('view', n)} className="bg-indigo-100 hover:bg-indigo-200 text-indigo-700 px-3 py-1.5 rounded-lg shadow-sm text-xs font-bold transition flex items-center gap-1" title={t.btnView}>👁️ {t.btnView}</button>
+                                                        <button onClick={() => openModal('edit', n)} className="bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1.5 rounded-lg shadow-sm text-xs font-bold transition flex items-center gap-1" title={t.btnEdit}>✏️ {t.btnEdit}</button>
+                                                        <button onClick={() => handleDelete(n.id)} className="bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1.5 rounded-lg shadow-sm text-xs font-bold transition flex items-center gap-1" title={t.btnDelete}>🗑️ {t.btnDelete}</button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                        {currentItems.length === 0 && (
+                                            <tr><td colSpan="5" className="p-8 text-center text-gray-400 font-bold">{t.noNpcFound}</td></tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            {totalPages > 1 && (
+                                <div className="p-4 bg-gray-50 border-t border-gray-200 flex justify-between items-center">
+                                    <span className="text-sm font-bold text-gray-500">{t.page} {currentPage} {t.from} {totalPages} ({filteredNPCs.length} {t.items})</span>
+                                    <div className="flex gap-2">
+                                        <button onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} disabled={currentPage === 1} className="px-4 py-2 rounded-lg font-bold text-sm bg-white border border-gray-300 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">{t.prevPage}</button>
+                                        <button onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} disabled={currentPage === totalPages} className="px-4 py-2 rounded-lg font-bold text-sm bg-white border border-gray-300 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">{t.nextPage}</button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {modalState.isOpen && (
+                        <ModalPortal>
+                            <div className="fixed inset-0 z-[9999] overflow-y-auto bg-gray-900/60 backdrop-blur-sm">
+                                <div className="flex min-h-screen items-center justify-center p-4 text-center sm:p-6">
+                                    <div className="relative w-full max-w-md bg-white rounded-3xl p-6 sm:p-8 animate-pop-in border-4 border-panel shadow-2xl text-left transition-all my-8 mx-auto">
+                                        <h2 className="text-2xl font-black text-panel mb-6 border-b-2 border-gray-100 pb-4 flex items-center gap-2">
+                                            <span>{modalState.mode === 'create' ? '➕' : modalState.mode === 'edit' ? '✏️' : '👁️'}</span>
+                                            {modalState.mode === 'create' ? t.modalCreateNpc : modalState.mode === 'edit' ? t.modalEditNpc : t.modalViewNpc}
+                                        </h2>
+                                        <form onSubmit={handleSubmit} className="space-y-4">
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="font-bold text-gray-700 block mb-1 text-sm">{t.usernameLabel}</label>
+                                                    <input type="text" required className="game-input text-sm" placeholder="Ex. user01" 
+                                                        value={formData.username} onChange={e => setFormData({...formData, username: e.target.value})} disabled={isReadOnly} />
+                                                </div>
+                                                <div>
+                                                    <label className="font-bold text-gray-700 block mb-1 text-sm">{t.passwordLabel}</label>
+                                                    <input type={isReadOnly ? "text" : "password"} required className="game-input text-sm" placeholder="***" 
+                                                        value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} disabled={isReadOnly} />
+                                                </div>
+                                            </div>
+                                            
+                                            <div>
+                                                <label className="font-bold text-gray-700 block mb-1 text-sm">{t.empIdLabel}</label>
+                                                <input type="text" required className="game-input text-sm" placeholder="e.g. E003"
+                                                    value={formData.empId} onChange={e => setFormData({...formData, empId: e.target.value})} disabled={isReadOnly || modalState.mode === 'edit'} />
+                                            </div>
+                                            
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="font-bold text-gray-700 block mb-1 text-sm">{t.colNameLastname}</label>
+                                                    <input type="text" required className="game-input text-sm" placeholder="e.g. Somchai"
+                                                        value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} disabled={isReadOnly} />
+                                                </div>
+                                                <div>
+                                                    <label className="font-bold text-gray-700 block mb-1 text-sm">{t.colNickname}</label>
+                                                    <input type="text" required className="game-input text-sm" placeholder="e.g. Chai"
+                                                        value={formData.nickname} onChange={e => setFormData({...formData, nickname: e.target.value})} disabled={isReadOnly} />
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <label className="font-bold text-gray-700 block mb-1 text-sm">{t.colRole}</label>
+                                                <select className="game-input text-sm" value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})} disabled={isReadOnly}>
+                                                    <option value="Staff">{t.roleStaff}</option>
+                                                    <option value="Admin">{t.roleAdmin}</option>
+                                                </select>
+                                            </div>
+
+                                            <div className="flex gap-4 mt-8 pt-4">
+                                                {isReadOnly ? (
+                                                    <button type="button" onClick={closeModal} className="w-full py-4 game-button game-button-blue text-lg">{t.btnCloseWindow}</button>
+                                                ) : (
+                                                    <>
+                                                        <button type="button" onClick={closeModal} className="flex-1 py-4 game-button game-button-red text-lg shadow-[0_6px_0_#991B1B]">{t.btnCancel}</button>
+                                                        <button type="submit" className="flex-1 py-4 game-button game-button-blue text-lg shadow-[0_6px_0_#03045E]">💾 {t.btnSave}</button>
+                                                    </>
+                                                )}
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </ModalPortal>
+                    )}
+                </>
+            );
+        }
+
+        const AdminSettings = ({ systemLogo, setSystemLogo, systemAvatars, setSystemAvatars, t }) => {
+            
+            const handleSaveSettings = async () => {
+                Swal.fire({ title: t.loading, allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+                
+                const payload = {
+                    logoUrl: systemLogo,
+                    avatars: systemAvatars
+                };
+                
+                const res = await apiCall('saveSettings', payload);
+                
+                if (res.success) {
+                    GameAlert.success(t.alertSuccess, t.btnSaveSettings + " เรียบร้อย", t.btnConfirm);
+                } else {
+                    GameAlert.error(t.alertError, res.message || "เกิดข้อผิดพลาดในการบันทึก", t.btnConfirm);
+                }
+            };
+
+            return (
+                <div className="space-y-6 animate-pop-in max-w-3xl mx-auto">
+                    <div className="bg-white p-4 rounded-2xl shadow-sm border-2 border-gray-200">
+                        <h1 className="text-3xl font-black text-panel flex items-center gap-3"><span>⚙️</span> {t.settingsTitle}</h1>
+                    </div>
+
+                    <div className="bg-white p-8 rounded-2xl shadow-md border-2 border-gray-200 space-y-6">
+                        <div className="grid grid-cols-1 gap-6">
+                            <div>
+                                <label className="font-bold text-panel block mb-2">{t.logoUrlLabel}</label>
+                                <input 
+                                    type="text" 
+                                    placeholder={t.logoUrlPlaceholder} 
+                                    className="game-input text-lg" 
+                                    value={systemLogo || ''}
+                                    onChange={(e) => setSystemLogo && setSystemLogo(e.target.value)}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="border-t-2 border-gray-100 pt-6 mt-2">
+                            <h3 className="font-black text-xl text-panel mb-4">{t.avatarUrlLabel}</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {[1, 2, 3, 4, 5].map(lvl => (
+                                    <div key={lvl}>
+                                        <label className="font-bold text-gray-600 block mb-1 text-sm">Level {lvl}</label>
+                                        <input 
+                                            type="text" 
+                                            placeholder={t.avatarUrlPlaceholder} 
+                                            className="game-input text-sm" 
+                                            value={systemAvatars ? systemAvatars[lvl] : ''}
+                                            onChange={(e) => {
+                                                if(setSystemAvatars) {
+                                                    setSystemAvatars({...systemAvatars, [lvl]: e.target.value});
+                                                }
+                                            }}
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="border-t-2 border-gray-100 pt-6 mt-2">
+                            <label className="font-bold text-panel block mb-2">{t.sysNameLabel}</label>
+                            <input type="text" defaultValue="SHE Leadership Journey" className="game-input text-lg" />
+                        </div>
+                        <div className="grid grid-cols-2 gap-6">
+                            <div>
+                                <label className="font-bold text-panel block mb-2">{t.primaryColorLabel}</label>
+                                <div className="flex items-center gap-2">
+                                    <input type="color" defaultValue="#FF8FAB" className="w-12 h-12 rounded cursor-pointer border-2 border-gray-300" />
+                                    <span className="font-mono text-gray-500">#FF8FAB</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label className="font-bold text-panel block mb-2">{t.defaultLangLabel}</label>
+                                <select className="game-input"><option>Thai (TH)</option><option>English (EN)</option></select>
+                            </div>
+                        </div>
+                        
+                        <div className="border-t-2 border-gray-100 pt-6 mt-6 space-y-4">
+                            <h3 className="font-black text-xl text-panel mb-4">{t.gameFeaturesLabel}</h3>
+                            
+                            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200">
+                                <div><p className="font-bold text-dark">{t.featureLeaderboard}</p><p className="text-xs text-gray-500">{t.featureLeaderboardDesc}</p></div>
+                                <div className="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+                                    <input type="checkbox" name="toggle" id="toggle1" defaultChecked className="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer z-10"/>
+                                    <label htmlFor="toggle1" className="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200">
+                                <div><p className="font-bold text-dark">{t.featureSound}</p><p className="text-xs text-gray-500">{t.featureSoundDesc}</p></div>
+                                <div className="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+                                    <input type="checkbox" name="toggle" id="toggle2" defaultChecked className="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer z-10"/>
+                                    <label htmlFor="toggle2" className="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button className="w-full py-4 game-button mt-8 text-xl" onClick={handleSaveSettings}>💾 {t.btnSaveSettings}</button>
+                    </div>
+                </div>
+            );
+        }
+
+        const AdminScreen = (props) => {
+            const t = props.t;
+            const menu = [
+                { id: 'dashboard', icon: '🏰', label: t.menuDashboard },
+                { id: 'missions', icon: '📜', label: t.menuMissions },
+                { id: 'levels', icon: '🌟', label: t.menuLevels },
+                { id: 'npc', icon: '🧙‍♂️', label: t.menuNPCs },
+                { id: 'settings', icon: '⚙️', label: t.menuSettings },
+            ];
+
+            return (
+                <div className="flex h-screen bg-gray-100 overflow-hidden font-sans">
+                    <div className="w-72 bg-panel text-white flex flex-col hidden md:flex border-r-4 border-[#1a1b26] shadow-xl z-20">
+                        <div className="p-6 bg-[#1a1b26] border-b-2 border-gray-700 text-center relative">
+                            <div className="text-6xl mb-2 drop-shadow-md">👑</div>
+                            <h2 className="font-black text-xl text-gold tracking-wider">{t.adminGuildMaster}</h2>
+                        </div>
+                        <div className="flex-1 overflow-y-auto py-6 px-4 space-y-2">
+                            {menu.map(item => (
+                                <button key={item.id} onClick={() => props.setAdminPage(item.id)}
+                                    className={`w-full text-left px-5 py-4 rounded-xl flex items-center gap-4 font-bold transition-all ${props.adminPage === item.id ? 'bg-primary text-white shadow-[0_4px_0_#C9184A] transform -translate-y-1' : 'hover:bg-white/10 text-gray-300'}`}>
+                                    <span className="text-xl">{item.icon}</span> {item.label}
+                                </button>
+                            ))}
+                        </div>
+                        <div className="p-6 bg-[#1a1b26] border-t-2 border-gray-700 space-y-4">
+                            <button onClick={() => props.setLang(props.lang === 'th' ? 'en' : 'th')} className="w-full py-2 bg-gray-800 rounded-lg text-gray-300 font-bold hover:bg-gray-700">
+                                🌐 {props.lang === 'th' ? 'Switch to English' : 'เปลี่ยนเป็นภาษาไทย'}
+                            </button>
+                            <button onClick={() => {props.setUser(null); props.setView('login');}} className="w-full py-3 game-button game-button-red">🚪 {t.logout}</button>
+                        </div>
+                    </div>
+
+                    <div className="flex-1 flex flex-col h-full overflow-hidden bg-[url('https://www.transparenttextures.com/patterns/cream-paper.png')]">
+                        <div className="md:hidden bg-panel text-white p-4 flex justify-between items-center border-b-4 border-[#1a1b26]">
+                            <h2 className="font-black text-gold">👑 {t.adminGuildAdmin}</h2>
+                            <div className="flex gap-2">
+                                <button onClick={() => props.setLang(props.lang === 'th' ? 'en' : 'th')} className="bg-gray-800 text-xs px-2 rounded font-bold">
+                                    {props.lang === 'th' ? 'EN' : 'TH'}
+                                </button>
+                                <select className="bg-[#1a1b26] text-white p-2 rounded-lg font-bold border border-gray-600" value={props.adminPage} onChange={(e) => props.setAdminPage(e.target.value)}>
+                                    {menu.map(m => <option key={m.id} value={m.id}>{m.label}</option>)}
+                                </select>
+                            </div>
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-4 md:p-8">
+                            {props.adminPage === 'dashboard' && <AdminDashboard t={t} systemAvatars={props.systemAvatars} allPlayers={props.allPlayers} onRefresh={props.onRefresh} levels={props.levels} missions={props.missions} missionLogs={props.missionLogs} lang={props.lang} />}
+                            {props.adminPage === 'missions' && <AdminMissions {...props} t={t} />}
+                            {props.adminPage === 'levels' && <AdminLevels {...props} t={t} />}
+                            {props.adminPage === 'npc' && <AdminNPCs {...props} t={t} />}
+                            {props.adminPage === 'settings' && <AdminSettings {...props} t={t} />}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [lang, setLang] = useState('th');
+            const t = languageDict[lang];
+            const [user, setUser] = useState(null); 
+            const [view, setView] = useState('login'); 
+            const [adminPage, setAdminPage] = useState('dashboard');
+            
+            const [isAppLoading, setIsAppLoading] = useState(true);
+
+            const [globalLevels, setGlobalLevels] = useState(initialLevels);
+            const [globalMissions, setGlobalMissions] = useState(initialMissions);
+            const [globalNPCs, setGlobalNPCs] = useState(initialNPCs);
+            const [globalMissionLogs, setGlobalMissionLogs] = useState([]);
+            const [allPlayers, setAllPlayers] = useState([]); 
+            
+            const [systemLogo, setSystemLogo] = useState(''); 
+            const [systemAvatars, setSystemAvatars] = useState({1: '', 2: '', 3: '', 4: '', 5: ''}); 
+            
+            const [showLevelUp, setShowLevelUp] = useState(false);
+            const [newLevelData, setNewLevelData] = useState(null);
+
+            const fetchInitialData = async () => {
+                const res = await apiCall('getInitialData', {});
+                if (res && res.success) {
+                    setGlobalLevels(res.levels || []);
+                    setGlobalMissions(res.missions || []);
+                    setGlobalNPCs(res.npcs || []);
+                    setAllPlayers(res.users || []);
+                    setGlobalMissionLogs(res.missionLogs || []);
+                    
+                    if (res.settings) {
+                        setSystemLogo(res.settings.logoUrl || '');
+                        setSystemAvatars({
+                            1: res.settings.avatar_level_1 || '',
+                            2: res.settings.avatar_level_2 || '',
+                            3: res.settings.avatar_level_3 || '',
+                            4: res.settings.avatar_level_4 || '',
+                            5: res.settings.avatar_level_5 || ''
+                        });
+                    }
+                } else {
+                    console.error("ไม่สามารถดึงข้อมูลตั้งต้นได้", res);
+                }
+            };
+
+            useEffect(() => {
+                fetchInitialData().then(() => setIsAppLoading(false));
+            }, []);
+
+            const handleRefreshData = async () => {
+                Swal.fire({ title: t.loading, allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+                await fetchInitialData();
+                Swal.close();
+            };
+
+            const triggerLevelUp = (newLevelId) => {
+                if (globalLevels.length === 0) return;
+                const lvl = globalLevels.find(l => String(l.id) === String(newLevelId)) || globalLevels[globalLevels.length-1];
+                setNewLevelData(lvl);
+                setShowLevelUp(true);
+            };
+
+            if (isAppLoading) {
+                return (
+                    <div className="min-h-[100dvh] flex flex-col items-center justify-center bg-[#FFF0F3] p-6">
+                        <div className="text-8xl animate-bounce mb-4">✨</div>
+                        <h2 className="text-2xl font-black text-primary text-center">กำลังเชื่อมต่อกิลด์...</h2>
+                        <div className="w-48 h-3 bg-pink-100 rounded-full mt-4 overflow-hidden">
+                            <div className="h-full bg-primary animate-pulse w-full"></div>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="min-h-[100dvh] text-dark relative">
+                    {view === 'login' && (
+                        <LoginScreen setView={setView} setUser={setUser} systemLogo={systemLogo} t={t} lang={lang} setLang={setLang} />
+                    )}
+                    
+                    {view === 'player' && (
+                        <PlayerScreen 
+                            user={user} setView={setView} setUser={setUser} 
+                            triggerLevelUp={triggerLevelUp} 
+                            levels={globalLevels} missions={globalMissions}
+                            missionLogs={globalMissionLogs}
+                            systemAvatars={systemAvatars}
+                            lang={lang} setLang={setLang} t={t}
+                        />
+                    )}
+                    
+                    {view === 'admin' && (
+                        <AdminScreen 
+                            user={user} setView={setView} setUser={setUser} 
+                            adminPage={adminPage} setAdminPage={setAdminPage}
+                            levels={globalLevels} setLevels={setGlobalLevels}
+                            missions={globalMissions} setMissions={setGlobalMissions}
+                            missionLogs={globalMissionLogs}
+                            npcs={globalNPCs} setNpcs={globalNPCs}
+                            allPlayers={allPlayers}
+                            onRefresh={handleRefreshData}
+                            systemLogo={systemLogo} setSystemLogo={setSystemLogo}
+                            systemAvatars={systemAvatars} setSystemAvatars={setSystemAvatars}
+                            lang={lang} setLang={setLang} t={t}
+                        />
+                    )}
+
+                    {/* Global Level Up Popup */}
+                    {showLevelUp && newLevelData && (
+                        <ModalPortal>
+                            <div className="fixed inset-0 z-[9999] overflow-y-auto bg-gray-900/60 backdrop-blur-sm">
+                                <div className="flex min-h-screen items-center justify-center p-4 text-center sm:p-6">
+                                    <div className="relative w-full max-w-sm bg-white rounded-3xl p-8 text-center animate-celebrate game-panel border-gold border-8 shadow-2xl transition-all my-8 mx-auto">
+                                        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-20 pointer-events-none"></div>
+                                        <h2 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500 mb-4 drop-shadow-md">🎉 {t.levelUpAlert} 🎉</h2>
+                                        <div className="text-9xl mb-4 animate-float drop-shadow-xl w-32 h-32 mx-auto">
+                                            <ImageWithFallback src={newLevelData.badge} fallbackEmoji="🔰" className="w-full h-full object-contain" alt="badge" />
+                                        </div>
+                                        <h3 className="text-3xl font-black text-panel mb-2">{lang === 'th' ? newLevelData.nameTH : newLevelData.nameEN}</h3>
+                                        <p className="text-gray-500 mb-8 font-bold">{t.levelUpDesc}</p>
+                                        <button onClick={() => setShowLevelUp(false)} className="w-full py-4 game-button text-xl">🎁 {t.claimReward}</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </ModalPortal>
+                    )}
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<ErrorBoundary><App /></ErrorBoundary>);
+    </script>
+</body>
+</html>
