@@ -94,6 +94,9 @@
         .game-button-red { background: linear-gradient(to bottom, #F87171, #EF4444); box-shadow: 0 6px 0 #991B1B; }
         .game-button-red:active:not(:disabled) { transform: translateY(6px); box-shadow: 0 0px 0 #991B1B; }
 
+        .game-button-gold { background: linear-gradient(to bottom, #FFD700, #F59E0B); box-shadow: 0 6px 0 #B45309; color: #4A4E69; text-shadow: 1px 1px 0px rgba(255,255,255,0.5); }
+        .game-button-gold:active:not(:disabled) { transform: translateY(6px); box-shadow: 0 0px 0 #B45309; }
+
         .game-input {
             border: 3px solid #FFC2D1;
             border-radius: 12px;
@@ -130,7 +133,6 @@
         ::-webkit-scrollbar-track { background: #FFF0F3; border-radius: 4px; }
         ::-webkit-scrollbar-thumb { background: #FF8FAB; border-radius: 4px; }
 
-        /* ปรับแต่ง CSS กล้องสแกนให้รองรับทุกอุปกรณ์ ตัด UI ที่ไม่จำเป็นออก */
         #qr-reader { border: none !important; width: 100% !important; height: 100% !important; display: flex; flex-direction: column; background: transparent; }
         #qr-reader__scan_region { width: 100% !important; height: 100% !important; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #000; border-radius: 12px; }
         #qr-reader video { object-fit: cover !important; width: 100% !important; height: 100% !important; min-height: 250px; border-radius: 12px; }
@@ -145,7 +147,6 @@
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
-        // --- Error Boundary (เกราะป้องกันจอขาว) ---
         class ErrorBoundary extends React.Component {
             constructor(props) {
                 super(props);
@@ -177,7 +178,6 @@
             }
         }
 
-        // --- System Components ---
         const ModalPortal = ({ children }) => {
             const portalRoot = document.getElementById('portal-root');
             if (!portalRoot) return children;
@@ -195,7 +195,6 @@
             return <img src={src} alt={alt} className={className} onError={() => setHasError(true)} />;
         };
 
-        // --- Global Alert Theme ---
         window.GameAlert = {
             success: (title, text, confirmBtn) => Swal.fire({
                 title: `<h2 class="text-3xl font-black text-green-600 drop-shadow-sm mb-2 mt-4">${title}</h2>`,
@@ -283,8 +282,10 @@
                 closeLogBtn: 'ปิดบันทึก',
                 emptyLog: 'ว่างเปล่า...',
                 levelUpAlert: 'LEVEL UP!',
-                levelUpDesc: 'คุณแข็งแกร่งขึ้นแล้ว! ปลดล็อคเควสต์ระดับต่อไป!',
-                claimReward: 'รับรางวัล',
+                levelUpDesc: 'คุณแข็งแกร่งขึ้นแล้ว! รับรางวัลและปลดล็อคเควสต์ระดับต่อไป!',
+                claimReward: 'รับรางวัล / ไปเลเวลถัดไป',
+                btnLevelUp: '✨ เลื่อนเป็นเลเวล ',
+                maxLevelReached: '🎉 ยินดีด้วย! คุณผ่านภารกิจทุกระดับแล้ว',
                 scanQRTitle: 'แสกน QR Code',
                 cancelScan: 'ยกเลิกการแสกน',
                 scanSuccessPrefix: 'แสกนสำเร็จ! สำเร็จภารกิจ:',
@@ -453,7 +454,9 @@
                 emptyLog: 'Empty...',
                 levelUpAlert: 'LEVEL UP!',
                 levelUpDesc: 'You grew stronger! Next level unlocked!',
-                claimReward: 'Claim Reward',
+                claimReward: 'Claim Reward & Next Level',
+                btnLevelUp: '✨ Advance to Level ',
+                maxLevelReached: '🎉 Congratulations! You have cleared all levels.',
                 scanQRTitle: 'Scan QR Code',
                 cancelScan: 'Cancel Scan',
                 scanSuccessPrefix: 'Scan Success! Completed:',
@@ -602,7 +605,7 @@
         const initialNPCs = [];
 
         // ==========================================
-        // COMPONENTS DEFINITIONS (ORDER IS IMPORTANT)
+        // COMPONENTS DEFINITIONS
         // ==========================================
         
         const LoginScreen = ({ setView, setUser, systemLogo, t, lang, setLang }) => {
@@ -774,7 +777,6 @@
             const safeLevels = Array.isArray(levels) ? levels : [];
             const safeLogs = Array.isArray(missionLogs) ? missionLogs : [];
 
-            // คำนวณเควสต์ที่ผ่านแล้วจาก Database
             const userLogs = safeLogs.filter(log => String(log.userId) === String(user.id));
             const completedMissionIds = userLogs.map(log => String(log.missionId));
 
@@ -784,14 +786,16 @@
                 return { ...m, completed: isLocalCompleted || isDbCompleted };
             });
 
-            const currentLevelData = safeLevels.find(l => String(l.id) === String(user.level)) || safeLevels[0] || { id: 1, nameTH: 'ไม่ระบุ', nameEN: 'Unknown', badge: '🔰' };
+            const currentLevelNum = parseInt(user.level) || 1;
+            const currentLevelData = safeLevels.find(l => String(l.id) === String(currentLevelNum)) || safeLevels[0] || { id: 1, nameTH: 'ไม่ระบุ', nameEN: 'Unknown', badge: '🔰' };
             const completedCount = currentLevelMissions.filter(m => m.completed).length;
             const progressPct = currentLevelMissions.length === 0 ? 0 : Math.round((completedCount / currentLevelMissions.length) * 100);
+
+            const hasNextLevel = safeLevels.some(l => String(l.id) === String(currentLevelNum + 1));
 
             const handleMissionClick = (mission) => {
                 if (mission.completed) return; 
                 
-                // รองรับกรณีข้อมูลโหมดอาจจะไม่มีในชีต ให้ถือว่าเปิด QR ได้เพื่อความปลอดภัย
                 const modes = Array.isArray(mission.modes) && mission.modes.length > 0 ? mission.modes : ['QR'];
                 
                 if (modes.includes('QR')) {
@@ -804,34 +808,19 @@
             };
 
             const completeMission = async (missionId) => {
-                // เปลี่ยนสถานะในเครื่องให้เสร็จทันที
                 const newArr = [...playerMissions, { id: missionId, completed: true }];
                 setPlayerMissions(newArr);
                 
                 const isAlreadyDone = completedMissionIds.includes(String(missionId));
                 if (!isAlreadyDone) {
-                    // ส่งข้อมูลไปเซฟที่ Backend เบื้องหลัง
                     await apiCall('grantMissionToUsers', {
                         missionId: missionId,
                         userIds: [user.id],
                         npcId: 'QR_Scanner'
                     });
                 }
-                
-                const levelMissions = safeMissions.filter(m => String(m.level) === String(user.level));
-                let totalDone = 0;
-                levelMissions.forEach(m => {
-                    if (completedMissionIds.includes(String(m.id)) || newArr.find(p => String(p.id) === String(m.id))?.completed) {
-                        totalDone++;
-                    }
-                });
-                
-                if(totalDone === levelMissions.length && levelMissions.length > 0) {
-                    setTimeout(() => triggerLevelUp((parseInt(user.level) || 0) + 1), 600);
-                }
             };
 
-            // ระบบแสกน QR แบบใหม่เสถียร 100%
             const QRScannerModal = () => {
                 const [camError, setCamError] = useState(null);
                 const [isScanning, setIsScanning] = useState(false);
@@ -921,31 +910,28 @@
                                 <p className="text-center text-sm font-bold text-gray-500 mb-4 truncate">{scanningMission?.name}</p>
                                 
                                 <div className="rounded-2xl overflow-hidden border-4 border-pink-200 shadow-inner bg-black min-h-[250px] h-[250px] relative flex items-center justify-center w-full">
-                                    
-                                    {/* พื้นที่สำหรับ Library HTML5QRCODE ต้อง render ไว้เสมอเพื่อให้ DOM ผูกติดกับ Library สำเร็จ */}
-                                    <div id="qr-reader" className="w-full h-full"></div>
+                                    <div id="qr-reader" className={`absolute inset-0 z-0 ${!isScanning ? 'invisible' : 'visible'}`}></div>
 
-                                    {/* UI ครอบทับตอนที่ยังไม่เปิดกล้อง */}
-                                    {!isScanning && (
-                                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50 z-10 p-4 text-center">
-                                            {!permissionRequested ? (
-                                                <>
-                                                    <span className="text-5xl mb-3">📸</span>
-                                                    <p className="text-sm font-bold text-gray-500 mb-4">{t.camAccessDesc}</p>
-                                                    <button onClick={startScan} className="game-button game-button-green px-6 py-3 text-sm shadow-[0_4px_0_#166534]">{t.btnReqCam}</button>
-                                                </>
-                                            ) : camError ? (
-                                                <>
-                                                    <span className="text-4xl mb-2 text-red-500">🚫</span>
-                                                    <p className="text-xs font-bold text-red-500 mb-4 px-2 leading-relaxed">{camError}</p>
-                                                    <button onClick={startScan} className="game-button game-button-blue px-4 py-2 text-sm">{t.btnRetryCam}</button>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <div className="animate-spin text-4xl mb-2">⏳</div>
-                                                    <p className="text-sm font-bold text-primary">{t.camPrep}</p>
-                                                </>
-                                            )}
+                                    {!permissionRequested && !isScanning && (
+                                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50 p-4 text-center z-10">
+                                            <span className="text-5xl mb-3">📸</span>
+                                            <p className="text-sm font-bold text-gray-500 mb-4">{t.camAccessDesc}</p>
+                                            <button onClick={startScan} className="game-button game-button-green px-6 py-3 text-sm shadow-[0_4px_0_#166534]">{t.btnReqCam}</button>
+                                        </div>
+                                    )}
+                                    
+                                    {permissionRequested && !isScanning && !camError && (
+                                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50 p-4 text-center z-10">
+                                            <div className="animate-spin text-4xl mb-2">⏳</div>
+                                            <p className="text-sm font-bold text-primary">{t.camPrep}</p>
+                                        </div>
+                                    )}
+
+                                    {camError && (
+                                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50 p-4 text-center z-10">
+                                            <span className="text-4xl mb-2 text-red-500">🚫</span>
+                                            <p className="text-xs font-bold text-red-500 mb-4 px-2 leading-relaxed">{camError}</p>
+                                            <button onClick={startScan} className="game-button game-button-blue px-4 py-2 text-sm">{t.btnRetryCam}</button>
                                         </div>
                                     )}
                                 </div>
@@ -997,7 +983,7 @@
                                     </div>
                                     <div className="flex justify-between items-center mt-1">
                                         <span className="text-[11px] font-black text-primary bg-pink-100 border border-pink-200 px-2 py-0.5 rounded-md shadow-sm">{t.level} {user.level}</span>
-                                        <span className="text-right text-xs text-gray-500 font-bold">{t.quest} {completedCount}/{currentLevelMissions.length}</span>
+                                        <span className="text-right text-xs text-gray-500 font-bold">{t.quest} {completedCount}/{currentLevelMissions.length || 0}</span>
                                     </div>
                                 </div>
                             </div>
@@ -1028,6 +1014,21 @@
                                             </div>
                                         </div>
                                     ))
+                                )}
+
+                                {/* ระบบเลื่อนเลเวลอัตโนมัติเมื่อทำเควสต์ครบ */}
+                                {progressPct === 100 && currentLevelMissions.length > 0 && hasNextLevel && (
+                                    <div className="mt-8 animate-bounce">
+                                        <button onClick={() => triggerLevelUp(currentLevelNum + 1)} className="w-full py-4 game-button game-button-gold text-lg border-2 border-white font-black rounded-2xl shadow-xl">
+                                            {t.btnLevelUp}{currentLevelNum + 1} ✨
+                                        </button>
+                                    </div>
+                                )}
+                                {progressPct === 100 && currentLevelMissions.length > 0 && !hasNextLevel && (
+                                    <div className="mt-8 text-center bg-yellow-50 border-4 border-yellow-300 rounded-2xl p-6 shadow-md">
+                                        <div className="text-4xl mb-2">🎉</div>
+                                        <p className="font-black text-yellow-800 text-lg leading-tight">{t.maxLevelReached}</p>
+                                    </div>
                                 )}
                             </div>
                         </div>
@@ -1108,7 +1109,6 @@
                 }
             });
 
-            // คำนวณ Progress ภารกิจ (MoM) จาก missionLogs
             const currentMonth = new Date().getMonth();
             const currentYear = new Date().getFullYear();
             let lastMonth = currentMonth - 1;
@@ -2563,6 +2563,20 @@
                 setShowLevelUp(true);
             };
 
+            const handleLevelUpConfirm = async () => {
+                if (!newLevelData) return;
+                const nextLevel = newLevelData.id;
+                
+                // เลื่อนระดับใน State ทันทีเพื่อให้แสดงผลหน้าต่างใหม่
+                setUser(prev => ({ ...prev, level: nextLevel }));
+                setShowLevelUp(false);
+                
+                // บันทึกการเลื่อนระดับไปที่ Backend (Google Sheet)
+                if (user && user.empId) {
+                    await apiCall('updateUserLevel', { empId: user.empId, newLevel: nextLevel });
+                }
+            };
+
             if (isAppLoading) {
                 return (
                     <div className="min-h-[100dvh] flex flex-col items-center justify-center bg-[#FFF0F3] p-6">
@@ -2621,7 +2635,7 @@
                                         </div>
                                         <h3 className="text-3xl font-black text-panel mb-2">{lang === 'th' ? newLevelData.nameTH : newLevelData.nameEN}</h3>
                                         <p className="text-gray-500 mb-8 font-bold">{t.levelUpDesc}</p>
-                                        <button onClick={() => setShowLevelUp(false)} className="w-full py-4 game-button text-xl">🎁 {t.claimReward}</button>
+                                        <button onClick={handleLevelUpConfirm} className="w-full py-4 game-button text-xl">🎁 {t.claimReward}</button>
                                     </div>
                                 </div>
                             </div>
