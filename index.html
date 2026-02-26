@@ -30,6 +30,9 @@
                         exp: '#4ADE80',
                         dark: '#4A4E69',
                         panel: '#2B2D42'
+                    },
+                    fontFamily: {
+                        sans: ['"Kanit"', 'sans-serif'],
                     }
                 }
             }
@@ -37,13 +40,13 @@
     </script>
 
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     
     <!-- HTML5 QR Code Scanner -->
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 
     <style>
-        body { font-family: 'Prompt', sans-serif; background-color: #FFF0F3; overflow-x: hidden; }
+        body { font-family: 'Kanit', sans-serif; background-color: #FFF0F3; overflow-x: hidden; }
         
         .game-panel {
             background: #ffffff;
@@ -1105,6 +1108,40 @@
                 }
             });
 
+            // คำนวณ Progress ภารกิจ (MoM) จาก missionLogs
+            const currentMonth = new Date().getMonth();
+            const currentYear = new Date().getFullYear();
+            let lastMonth = currentMonth - 1;
+            let lastMonthYear = currentYear;
+            if (lastMonth < 0) { lastMonth = 11; lastMonthYear--; }
+
+            let currentMonthCount = 0;
+            let lastMonthCount = 0;
+
+            safeLogs.forEach(log => {
+                if (!log.scanDate) return;
+                const d = new Date(log.scanDate);
+                if (isNaN(d.getTime())) return;
+                
+                if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) {
+                    currentMonthCount++;
+                } else if (d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear) {
+                    lastMonthCount++;
+                }
+            });
+
+            let progressMomStr = "0%";
+            let progressMomColor = "text-gray-500";
+            
+            if (lastMonthCount === 0 && currentMonthCount > 0) {
+                progressMomStr = "+100%";
+                progressMomColor = "text-green-600";
+            } else if (lastMonthCount > 0) {
+                const pct = ((currentMonthCount - lastMonthCount) / lastMonthCount) * 100;
+                progressMomStr = (pct > 0 ? "+" : "") + pct.toFixed(1) + "%";
+                progressMomColor = pct >= 0 ? "text-green-600" : "text-red-500";
+            }
+
             const sortedPlayers = [...safePlayers].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
             const filteredPlayers = sortedPlayers.filter(p => 
@@ -1192,9 +1229,10 @@
                             <div className="absolute -right-4 -bottom-4 text-8xl opacity-10">📈</div>
                             <p className="text-gray-500 font-bold">{t.questProgressMom}</p>
                             <div className="flex items-end gap-3 mt-2">
-                                <h3 className="text-4xl font-black text-green-600">+15.5%</h3>
+                                <h3 className={`text-4xl font-black ${progressMomColor}`}>{progressMomStr}</h3>
                                 <span className="text-sm font-bold text-gray-400 mb-1">{t.fromLastMonth}</span>
                             </div>
+                            <p className="text-xs text-gray-400 mt-2">เดือนนี้: {currentMonthCount} / เดือนก่อน: {lastMonthCount}</p>
                         </div>
                     </div>
 
