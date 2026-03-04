@@ -607,6 +607,126 @@
         // COMPONENTS DEFINITIONS
         // ==========================================
         
+        const QRScannerModal = ({ scanningMission, setScanningMission, completeMission, t }) => {
+            const [camError, setCamError] = useState(null);
+            const [isScanning, setIsScanning] = useState(false);
+            const [permissionRequested, setPermissionRequested] = useState(false);
+            const scannerRef = useRef(null);
+
+            const stopScanner = () => {
+                if (scannerRef.current) {
+                    try {
+                        if (scannerRef.current.isScanning || scannerRef.current.getState() === 2) {
+                            scannerRef.current.stop().then(() => {
+                                scannerRef.current.clear();
+                            }).catch(() => {});
+                        } else {
+                            scannerRef.current.clear();
+                        }
+                    } catch (e) {}
+                }
+            };
+
+            const handleCancelScan = () => {
+                stopScanner();
+                setScanningMission(null);
+            };
+
+            const startScan = async () => {
+                setPermissionRequested(true);
+                setCamError(null);
+
+                try {
+                    const cameras = await Html5Qrcode.getCameras();
+                    if (cameras && cameras.length > 0) {
+                        if (!scannerRef.current) {
+                            scannerRef.current = new Html5Qrcode("qr-reader");
+                        }
+
+                        const onScanSuccess = (decodedText) => {
+                            stopScanner();
+                            const expectedQRData = `SLJ_MISSION_${scanningMission.id}`;
+                            if (decodedText === expectedQRData) {
+                                completeMission(scanningMission.id);
+                                GameAlert.success(t.alertSuccess, `${t.scanSuccessPrefix} ${scanningMission.name}`, t.btnConfirm);
+                            } else {
+                                GameAlert.error(t.alertError, t.scanFailMsg, t.btnConfirm);
+                            }
+                            setScanningMission(null);
+                        };
+
+                        const config = { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 };
+
+                        try {
+                            await scannerRef.current.start({ facingMode: "environment" }, config, onScanSuccess);
+                            setIsScanning(true);
+                        } catch (e) {
+                            console.log("Failed to start environment camera, trying default", e);
+                            try {
+                                await scannerRef.current.start(cameras[0].id, config, onScanSuccess);
+                                setIsScanning(true);
+                            } catch (e2) {
+                                console.error(e2);
+                                setCamError('ไม่สามารถเริ่มต้นกล้องได้ กรุณารีเฟรชแล้วลองใหม่');
+                                setPermissionRequested(false);
+                            }
+                        }
+                    } else {
+                        setCamError('ไม่พบกล้องในอุปกรณ์ของคุณ');
+                        setPermissionRequested(false);
+                    }
+                } catch (err) {
+                    console.error("Camera Request Error:", err);
+                    setCamError(err.message || "ไม่สามารถเข้าถึงกล้องได้ กรุณาให้สิทธิ์กล้องในเบราว์เซอร์");
+                    setPermissionRequested(false);
+                }
+            };
+
+            useEffect(() => {
+                return () => { stopScanner(); };
+            }, []);
+
+            return (
+                <div className="fixed inset-0 z-[9999] overflow-y-auto bg-gray-900/90 backdrop-blur-sm">
+                    <div className="flex min-h-screen items-center justify-center p-4 text-center sm:p-6">
+                        <div className="relative w-full max-w-sm bg-white p-6 rounded-3xl animate-pop-in shadow-2xl border-4 border-panel text-left transition-all my-8 mx-auto">
+                            <h3 className="text-xl font-black text-center mb-2 text-panel flex justify-center items-center gap-2"><span>📷</span> {t.scanQRTitle}</h3>
+                            <p className="text-center text-sm font-bold text-gray-500 mb-4 truncate">{scanningMission?.name}</p>
+
+                            <div className="rounded-2xl overflow-hidden border-4 border-pink-200 shadow-inner bg-black min-h-[250px] h-[250px] relative flex items-center justify-center w-full">
+                                <div id="qr-reader" className={`absolute inset-0 z-0 ${!isScanning ? 'invisible' : 'visible'}`}></div>
+
+                                {!permissionRequested && !isScanning && (
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50 p-4 text-center z-10">
+                                        <span className="text-5xl mb-3">📸</span>
+                                        <p className="text-sm font-bold text-gray-500 mb-4">{t.camAccessDesc}</p>
+                                        <button onClick={startScan} className="game-button game-button-green px-6 py-3 text-sm shadow-[0_4px_0_#166534]">{t.btnReqCam}</button>
+                                    </div>
+                                )}
+
+                                {permissionRequested && !isScanning && !camError && (
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50 p-4 text-center z-10">
+                                        <div className="animate-spin text-4xl mb-2">⏳</div>
+                                        <p className="text-sm font-bold text-primary">{t.camPrep}</p>
+                                    </div>
+                                )}
+
+                                {camError && (
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50 p-4 text-center z-10">
+                                        <span className="text-4xl mb-2 text-red-500">🚫</span>
+                                        <p className="text-xs font-bold text-red-500 mb-4 px-2 leading-relaxed">{camError}</p>
+                                        <button onClick={startScan} className="game-button game-button-blue px-4 py-2 text-sm">{t.btnRetryCam}</button>
+                                    </div>
+                                )}
+                            </div>
+
+                            <button onClick={handleCancelScan} className="mt-6 w-full py-4 game-button game-button-red text-lg shadow-[0_6px_0_#991B1B]">{t.cancelScan}</button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
         const LoginScreen = ({ setView, setUser, systemLogo, t, lang, setLang }) => {
             const [isLoading, setIsLoading] = useState(true); 
             const [showFirstTime, setShowFirstTime] = useState(false);
@@ -622,7 +742,6 @@
                             const profile = await liff.getProfile();
                             setLineProfile(profile);
                             
-                            // ถ้าผู้ใช้เพิ่งกด Log out มาด้วยตัวเอง จะไม่ให้เข้าสู่ระบบอัตโนมัติ
                             if (sessionStorage.getItem('manualLogout') === 'true') {
                                 setIsLoading(false);
                             } else {
@@ -640,7 +759,6 @@
             }, []);
 
             const handleLineLoginClick = async () => {
-                // เคลียร์สถานะการล็อกเอาท์ออก เพราะผู้ใช้กำลังกดปุ่มเข้าสู่ระบบใหม่
                 sessionStorage.removeItem('manualLogout');
                 
                 if (!liff.isLoggedIn()) {
@@ -877,128 +995,6 @@
                 }
             };
 
-            const QRScannerModal = () => {
-                const [camError, setCamError] = useState(null);
-                const [isScanning, setIsScanning] = useState(false);
-                const [permissionRequested, setPermissionRequested] = useState(false);
-                const scannerRef = useRef(null);
-
-                const stopScanner = () => {
-                    if (scannerRef.current) {
-                        try {
-                            if (scannerRef.current.isScanning || scannerRef.current.getState() === 2) {
-                                scannerRef.current.stop().then(() => {
-                                    scannerRef.current.clear();
-                                }).catch(() => {});
-                            } else {
-                                scannerRef.current.clear();
-                            }
-                        } catch (e) {}
-                    }
-                };
-
-                const handleCancelScan = () => {
-                    stopScanner();
-                    setScanningMission(null);
-                };
-
-                const startScan = async () => {
-                    setPermissionRequested(true);
-                    setCamError(null);
-                    
-                    try {
-                        const cameras = await Html5Qrcode.getCameras();
-                        if (cameras && cameras.length > 0) {
-                            if (!scannerRef.current) {
-                                scannerRef.current = new Html5Qrcode("qr-reader");
-                            }
-                            
-                            const onScanSuccess = (decodedText) => {
-                                stopScanner();
-                                const expectedQRData = `SLJ_MISSION_${scanningMission.id}`;
-                                if (decodedText === expectedQRData) {
-                                    completeMission(scanningMission.id);
-                                    GameAlert.success(t.alertSuccess, `${t.scanSuccessPrefix} ${scanningMission.name}`, t.btnConfirm);
-                                } else {
-                                    GameAlert.error(t.alertError, t.scanFailMsg, t.btnConfirm);
-                                }
-                                setScanningMission(null);
-                            };
-
-                            const config = { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 };
-                            
-                            try {
-                                await scannerRef.current.start({ facingMode: "environment" }, config, onScanSuccess);
-                                setIsScanning(true);
-                            } catch (e) {
-                                console.log("Failed to start environment camera, trying default", e);
-                                try {
-                                    await scannerRef.current.start(cameras[0].id, config, onScanSuccess);
-                                    setIsScanning(true);
-                                } catch (e2) {
-                                    console.error(e2);
-                                    setCamError('ไม่สามารถเริ่มต้นกล้องได้ กรุณารีเฟรชแล้วลองใหม่');
-                                    setPermissionRequested(false);
-                                }
-                            }
-                        } else {
-                            setCamError('ไม่พบกล้องในอุปกรณ์ของคุณ');
-                            setPermissionRequested(false);
-                        }
-                    } catch (err) {
-                        console.error("Camera Request Error:", err);
-                        setCamError(err.message || "ไม่สามารถเข้าถึงกล้องได้ กรุณาให้สิทธิ์กล้องในเบราว์เซอร์");
-                        setPermissionRequested(false);
-                    }
-                };
-
-                useEffect(() => {
-                    return () => {
-                        stopScanner();
-                    };
-                }, []);
-
-                return (
-                    <div className="fixed inset-0 z-[9999] overflow-y-auto bg-gray-900/90 backdrop-blur-sm">
-                        <div className="flex min-h-screen items-center justify-center p-4 text-center sm:p-6">
-                            <div className="relative w-full max-w-sm bg-white p-6 rounded-3xl animate-pop-in shadow-2xl border-4 border-panel text-left transition-all my-8 mx-auto">
-                                <h3 className="text-xl font-black text-center mb-2 text-panel flex justify-center items-center gap-2"><span>📷</span> {t.scanQRTitle}</h3>
-                                <p className="text-center text-sm font-bold text-gray-500 mb-4 truncate">{scanningMission?.name}</p>
-                                
-                                <div className="rounded-2xl overflow-hidden border-4 border-pink-200 shadow-inner bg-black min-h-[250px] h-[250px] relative flex items-center justify-center w-full">
-                                    <div id="qr-reader" className={`absolute inset-0 z-0 ${!isScanning ? 'invisible' : 'visible'}`}></div>
-
-                                    {!permissionRequested && !isScanning && (
-                                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50 p-4 text-center z-10">
-                                            <span className="text-5xl mb-3">📸</span>
-                                            <p className="text-sm font-bold text-gray-500 mb-4">{t.camAccessDesc}</p>
-                                            <button onClick={startScan} className="game-button game-button-green px-6 py-3 text-sm shadow-[0_4px_0_#166534]">{t.btnReqCam}</button>
-                                        </div>
-                                    )}
-                                    
-                                    {permissionRequested && !isScanning && !camError && (
-                                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50 p-4 text-center z-10">
-                                            <div className="animate-spin text-4xl mb-2">⏳</div>
-                                            <p className="text-sm font-bold text-primary">{t.camPrep}</p>
-                                        </div>
-                                    )}
-
-                                    {camError && (
-                                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50 p-4 text-center z-10">
-                                            <span className="text-4xl mb-2 text-red-500">🚫</span>
-                                            <p className="text-xs font-bold text-red-500 mb-4 px-2 leading-relaxed">{camError}</p>
-                                            <button onClick={startScan} className="game-button game-button-blue px-4 py-2 text-sm">{t.btnRetryCam}</button>
-                                        </div>
-                                    )}
-                                </div>
-                                
-                                <button onClick={handleCancelScan} className="mt-6 w-full py-4 game-button game-button-red text-lg shadow-[0_6px_0_#991B1B]">{t.cancelScan}</button>
-                            </div>
-                        </div>
-                    </div>
-                );
-            };
-
             return (
                 <>
                     <div className="min-h-[100dvh] pb-20 max-w-lg mx-auto bg-[#FFF0F3] shadow-2xl relative overflow-hidden border-x border-pink-100">
@@ -1008,7 +1004,7 @@
                                     <div className="relative">
                                         <div className="avatar-frame">
                                             <div className="w-16 h-16 rounded-full overflow-hidden bg-white">
-                                                <ImageWithFallback src={user.linePic || (systemAvatars && systemAvatars[user.level] ? systemAvatars[user.level] : `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}&backgroundColor=FFC2D1`)} fallbackEmoji="👤" className="w-full h-full object-cover" alt="Avatar" />
+                                                <ImageWithFallback src={user.linePic || (systemAvatars && systemAvatars[user.level]) ? systemAvatars[user.level] : `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}&backgroundColor=FFC2D1`} fallbackEmoji="👤" className="w-full h-full object-cover" alt="Avatar" />
                                             </div>
                                         </div>
                                         <button onClick={() => setLang(lang === 'th' ? 'en' : 'th')} className="absolute -top-1 -right-2 bg-white text-primary text-[10px] font-black px-2 py-0.5 rounded-full shadow-md border-2 border-pink-200 z-20 hover:bg-pink-50 transition cursor-pointer uppercase">
@@ -1089,6 +1085,17 @@
                             </div>
                         </div>
                     </div>
+
+                    {scanningMission && (
+                        <ModalPortal>
+                            <QRScannerModal 
+                                scanningMission={scanningMission}
+                                setScanningMission={setScanningMission}
+                                completeMission={completeMission}
+                                t={t}
+                            />
+                        </ModalPortal>
+                    )}
 
                     {showAllMissions && (
                         <ModalPortal>
@@ -1324,7 +1331,7 @@
                                             <td className="p-4 text-center text-gray-600 font-mono">{p.lineName || '-'}</td>
                                             <td className="p-4 text-dark font-bold flex items-center gap-3">
                                                 <div className="w-8 h-8 rounded-full bg-pink-100 overflow-hidden border border-pink-200 flex-shrink-0">
-                                                    <ImageWithFallback src={p.linePic || (systemAvatars && systemAvatars[p.level] ? systemAvatars[p.level] : `https://api.dicebear.com/7.x/avataaars/svg?seed=${p.id}&backgroundColor=FFC2D1`)} fallbackEmoji="👤" className="w-full h-full object-cover" alt="avatar" />
+                                                    <ImageWithFallback src={p.linePic || (systemAvatars && systemAvatars[p.level]) ? systemAvatars[p.level] : `https://api.dicebear.com/7.x/avataaars/svg?seed=${p.id}&backgroundColor=FFC2D1`} fallbackEmoji="👤" className="w-full h-full object-cover" alt="avatar" />
                                                 </div>
                                                 <span className="truncate">{p.nickname}</span>
                                             </td>
@@ -1368,7 +1375,7 @@
                                             <div className="relative">
                                                 <div className="avatar-frame">
                                                     <div className="w-16 h-16 rounded-full overflow-hidden bg-white">
-                                                        <ImageWithFallback src={selectedPlayer.linePic || (systemAvatars && systemAvatars[selectedPlayer.level] ? systemAvatars[selectedPlayer.level] : `https://api.dicebear.com/7.x/avataaars/svg?seed=${selectedPlayer.id}&backgroundColor=FFC2D1`)} fallbackEmoji="👤" className="w-full h-full object-cover" alt="Avatar" />
+                                                        <ImageWithFallback src={selectedPlayer.linePic || (systemAvatars && systemAvatars[selectedPlayer.level]) ? systemAvatars[selectedPlayer.level] : `https://api.dicebear.com/7.x/avataaars/svg?seed=${selectedPlayer.id}&backgroundColor=FFC2D1`} fallbackEmoji="👤" className="w-full h-full object-cover" alt="Avatar" />
                                                     </div>
                                                 </div>
                                             </div>
@@ -1620,7 +1627,7 @@
 
             const filteredGrantUsers = (Array.isArray(allPlayers) ? allPlayers : []).filter(p => 
                 String(p.nickname || '').toLowerCase().includes(grantSearchTerm.toLowerCase()) || 
-                String(p.empId || '').toLowerCase().includes(grantSearchTerm.toLowerCase())
+                String(p.lineName || '').toLowerCase().includes(grantSearchTerm.toLowerCase())
             );
 
             const indexOfLastItem = currentPage * itemsPerPage;
@@ -1858,7 +1865,7 @@
                                                             onChange={() => handleToggleUserGrant(p.id)}
                                                         />
                                                         <div className="w-10 h-10 rounded-full bg-pink-200 overflow-hidden border border-pink-300 flex-shrink-0">
-                                                            <ImageWithFallback src={p.linePic || (systemAvatars && systemAvatars[p.level] ? systemAvatars[p.level] : `https://api.dicebear.com/7.x/avataaars/svg?seed=${p.id}&backgroundColor=FFC2D1`)} fallbackEmoji="👤" className="w-full h-full object-cover" />
+                                                            <ImageWithFallback src={p.linePic || (systemAvatars && systemAvatars[p.level]) ? systemAvatars[p.level] : `https://api.dicebear.com/7.x/avataaars/svg?seed=${p.id}&backgroundColor=FFC2D1`} fallbackEmoji="👤" className="w-full h-full object-cover" />
                                                         </div>
                                                         <div className="flex-1 min-w-0">
                                                             <p className="font-bold text-dark truncate">{p.nickname} <span className="text-xs text-gray-400 font-mono ml-2">({p.lineName})</span></p>
@@ -2621,7 +2628,7 @@
                 setShowLevelUp(false);
                 
                 if (user && user.id) {
-                    await apiCall('updateUserLevel', { empId: user.empId, newLevel: nextLevel });
+                    await apiCall('updateUserLevel', { userId: user.id, newLevel: nextLevel });
                 }
             };
 
