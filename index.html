@@ -44,6 +44,9 @@
     
     <!-- HTML5 QR Code Scanner -->
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    
+    <!-- LINE LIFF SDK -->
+    <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
     <style>
         body { font-family: 'Kanit', sans-serif; background-color: #FFF0F3; overflow-x: hidden; }
@@ -259,9 +262,7 @@
             th: {
                 appTitle: 'SHE Leadership Journey',
                 pressStart: '- PRESS START -',
-                loginBtn: 'เข้าสู่ระบบ',
-                empIdPlaceholder: 'รหัสพนักงาน 7 หลัก',
-                invalidEmpId: 'กรุณากรอกตัวเลข 7 หลัก',
+                loginBtn: 'เข้าสู่ระบบด้วย LINE',
                 registerAdv: 'ลงทะเบียนนักผจญภัย',
                 playerId: 'รหัสผู้เล่น',
                 charNickname: 'ชื่อเล่นตัวละคร',
@@ -309,7 +310,7 @@
                 searchPlaceholder: 'ค้นหาชื่อ, รหัส...',
                 colNo: 'ลำดับ',
                 colUserId: 'User ID',
-                colEmpId: 'รหัสพนักงาน',
+                colEmpId: 'ชื่อ LINE',
                 colNickname: 'ชื่อเล่น',
                 colDept: 'หน่วยงาน',
                 colLevel: 'Level',
@@ -430,9 +431,7 @@
             en: {
                 appTitle: 'SHE Leadership Journey',
                 pressStart: '- PRESS START -',
-                loginBtn: 'Login',
-                empIdPlaceholder: '7-digit Employee ID',
-                invalidEmpId: 'Please enter exactly 7 digits',
+                loginBtn: 'Login with LINE',
                 registerAdv: 'Register Adventurer',
                 playerId: 'Player ID',
                 charNickname: 'Character Nickname',
@@ -480,7 +479,7 @@
                 searchPlaceholder: 'Search name, ID...',
                 colNo: 'No.',
                 colUserId: 'User ID',
-                colEmpId: 'Employee ID',
+                colEmpId: 'LINE Name',
                 colNickname: 'Nickname',
                 colDept: 'Department',
                 colLevel: 'Level',
@@ -609,20 +608,41 @@
         // ==========================================
         
         const LoginScreen = ({ setView, setUser, systemLogo, t, lang, setLang }) => {
-            const [empId, setEmpId] = useState('');
-            const [isLoading, setIsLoading] = useState(false);
+            const [isLoading, setIsLoading] = useState(true); 
             const [showFirstTime, setShowFirstTime] = useState(false);
             const [showAdminLogin, setShowAdminLogin] = useState(false);
+            const [lineProfile, setLineProfile] = useState(null);
 
-            const handlePlayerLogin = async (e) => {
-                e.preventDefault();
-                if (!/^\d{7}$/.test(empId)) { 
-                    GameAlert.error(t.alertError, t.invalidEmpId, t.btnConfirm);
-                    return; 
+            // เริ่มต้นระบบ LINE LIFF เมื่อเปิดหน้าเว็บ
+            useEffect(() => {
+                const initLiff = async () => {
+                    try {
+                        await liff.init({ liffId: "1657219087-bCmQVG5s" }); 
+                        
+                        if (liff.isLoggedIn()) {
+                            const profile = await liff.getProfile();
+                            setLineProfile(profile);
+                            handleCheckUser(profile.userId);
+                        } else {
+                            setIsLoading(false);
+                        }
+                    } catch (err) {
+                        console.error('LIFF init failed', err);
+                        setIsLoading(false);
+                    }
+                };
+                initLiff();
+            }, []);
+
+            const handleLineLoginClick = () => {
+                if (!liff.isLoggedIn()) {
+                    liff.login(); 
                 }
-                setIsLoading(true);
+            };
 
-                const res = await apiCall('loginPlayer', { empId });
+            const handleCheckUser = async (lineUid) => {
+                setIsLoading(true);
+                const res = await apiCall('loginPlayer', { lineUid: lineUid });
                 setIsLoading(false);
 
                 if (res.success) {
@@ -643,7 +663,14 @@
                 const nickname = e.target.nickname.value;
                 const dept = e.target.dept.value;
 
-                const res = await apiCall('registerPlayer', { empId, nickname, department: dept });
+                const res = await apiCall('registerPlayer', { 
+                    lineUid: lineProfile.userId, 
+                    lineName: lineProfile.displayName,
+                    linePic: lineProfile.pictureUrl,
+                    empId: "-", // ไม่ใช้รหัสพนักงานแล้ว แต่ส่ง Dummy ไปกัน Backend พัง
+                    nickname: nickname, 
+                    department: dept 
+                });
                 setIsLoading(false);
 
                 if(res.success) {
@@ -705,68 +732,80 @@
                                 <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-primary to-orange-400 drop-shadow-sm">{t.appTitle}</h1>
                                 <p className="text-sm font-bold text-gray-400 mt-2 tracking-widest uppercase">{t.pressStart}</p>
                             </div>
-                            <form onSubmit={handlePlayerLogin} className="space-y-5">
-                                <div>
-                                    <input type="text" placeholder={t.empIdPlaceholder} maxLength="7" disabled={isLoading} className="game-input text-center text-xl tracking-widest" value={empId} onChange={(e) => setEmpId(e.target.value.replace(/\D/g, ''))} />
-                                </div>
-                                <button type="submit" disabled={isLoading} className="w-full py-4 game-button text-xl">
-                                    {isLoading ? t.loading : `⚔️ ${t.loginBtn}`}
-                                </button>
-                            </form>
-                        </div>
-
-                        <div className="fixed bottom-6 right-6 z-50 cursor-pointer animate-float hover:scale-110" onClick={() => setShowAdminLogin(true)}>
-                            <div className="bg-white/90 p-4 rounded-2xl shadow-xl border-4 border-gold text-4xl">🧰</div>
+                            
+                            <div className="space-y-5">
+                                <button 
+                                    onClick={handleLineLoginClick} 
+                                    disabled={isLoading} 
+                                    className="w-full py-4 text-xl font-black rounded-2xl text-white shadow-lg transition-all active:translate-y-1 disabled:opacity-70 flex items-center justify-center gap-3"
+                                    style={{ backgroundColor: '#06C755', boxShadow: '0 6px 0 #04a546' }}
+                                >
+                                    {isLoading ? (
+                                        <span className="animate-pulse">⏳ {t.loading}</span>
+                                    ) : (
+                                        <>
+                                            <svg className="w-8 h-8" viewBox="0 0 24 24" fill="currentColor"><path d="M24 10.304c0-5.369-5.383-9.738-12-9.738-6.616 0-12 4.369-12 9.738 0 4.814 4.269 8.846 10.036 9.608.391.084.922.258 1.057.592.122.303.079.778.039 1.085l-.171 1.027c-.053.303-.242 1.186 1.039.647 1.281-.54 6.911-4.069 9.428-6.967 1.739-1.907 2.572-3.843 2.572-5.992zm-18.988-2.595h-2.181c-.302 0-.547.245-.547.547v5.043c0 .302.245.547.547.547h2.181c.302 0 .547-.245.547-.547s-.245-.547-.547-.547h-1.634v-1.427h1.634c.302 0 .547-.245.547-.547s-.245-.547-.547-.547h-1.634v-1.427h1.634c.302 0 .547-.245.547-.547s-.245-.547-.547-.547zm4.27 5.59h-1.094c-.302 0-.547-.245-.547-.547v-5.043c0-.302.245-.547.547-.547h1.094c.302 0 .547.245.547.547v5.043c0 .302-.245.547-.547.547zm5.59-5.043v3.834l-2.607-3.693c-.08-.124-.222-.195-.368-.186-.145.008-.277.095-.339.227-.016.035-.024.072-.024.11v5.043c0 .302.245.547.547.547s.547-.245.547-.547v-3.834l2.607 3.693c.08.124.222.195.368.186.145-.008.277-.095.339-.227.016-.035.024-.072.024-.11v-5.043c0-.302-.245-.547-.547-.547s-.547.245-.547.547zm4.271 0h-2.181c-.302 0-.547.245-.547.547v5.043c0 .302.245.547.547.547h2.181c.302 0 .547-.245.547-.547s-.245-.547-.547-.547h-1.634v-1.427h1.634c.302 0 .547-.245.547-.547s-.245-.547-.547-.547h-1.634v-1.427h1.634c.302 0 .547-.245.547-.547s-.245-.547-.547-.547z"/></svg>
+                                        เข้าสู่ระบบด้วย LINE
+                                    </>
+                                )}
+                            </button>
                         </div>
                     </div>
 
-                    {showFirstTime && (
-                        <ModalPortal>
-                            <div className="fixed inset-0 z-[9999] overflow-y-auto bg-gray-900/60 backdrop-blur-sm">
-                                <div className="flex min-h-screen items-center justify-center p-4 text-center sm:p-6">
-                                    <div className="relative w-full max-w-md bg-white rounded-3xl p-8 animate-pop-in scroll-panel shadow-2xl text-left transition-all my-8 mx-auto">
-                                        <div className="text-center mb-6">
-                                            <div className="text-5xl mb-2">📜</div>
-                                            <h2 className="text-2xl font-black text-wood">{t.registerAdv}</h2>
-                                        </div>
-                                        <form onSubmit={handleFirstTimeSubmit} className="space-y-4">
-                                            <div><label className="text-sm font-bold text-wood">{t.playerId}</label><input type="text" disabled value={empId} className="game-input bg-gray-100 text-gray-500" /></div>
-                                            <div><label className="text-sm font-bold text-wood">🏷️ {t.charNickname}</label><input name="nickname" type="text" disabled={isLoading} required className="game-input" /></div>
-                                            <div><label className="text-sm font-bold text-wood">🏰 {t.deptGuild}</label><input name="dept" type="text" disabled={isLoading} required className="game-input" /></div>
-                                            <button type="submit" disabled={isLoading} className="w-full py-4 game-button game-button-green mt-6">
-                                                {isLoading ? t.loading : `⭐ ${t.startAdvBtn}`}
-                                            </button>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        </ModalPortal>
-                    )}
+                    <div className="fixed bottom-6 right-6 z-50 cursor-pointer animate-float hover:scale-110" onClick={() => setShowAdminLogin(true)}>
+                        <div className="bg-white/90 p-4 rounded-2xl shadow-xl border-4 border-gold text-4xl">🧰</div>
+                    </div>
+                </div>
 
-                    {showAdminLogin && (
-                        <ModalPortal>
-                            <div className="fixed inset-0 z-[9999] overflow-y-auto bg-gray-900/60 backdrop-blur-sm">
-                                <div className="flex min-h-screen items-center justify-center p-4 text-center sm:p-6">
-                                    <div className="relative w-full max-w-md bg-panel rounded-3xl p-8 animate-pop-in border-4 border-gold shadow-2xl text-white text-left transition-all my-8 mx-auto">
-                                        <div className="flex justify-between items-center mb-6 border-b-2 border-gray-700 pb-4">
-                                            <h2 className="text-2xl font-black text-gold flex items-center gap-2"><span>🛡️</span> {t.guildStaff}</h2>
-                                            <button onClick={() => setShowAdminLogin(false)} className="text-gray-400 hover:text-white font-bold text-xl">✕</button>
+                {showFirstTime && (
+                    <ModalPortal>
+                        <div className="fixed inset-0 z-[9999] overflow-y-auto bg-gray-900/60 backdrop-blur-sm">
+                            <div className="flex min-h-screen items-center justify-center p-4 text-center sm:p-6">
+                                <div className="relative w-full max-w-md bg-white rounded-3xl p-8 animate-pop-in scroll-panel shadow-2xl text-left transition-all my-8 mx-auto">
+                                    <div className="text-center mb-6">
+                                        <div className="w-20 h-20 mx-auto rounded-full overflow-hidden shadow-lg border-4 border-primary mb-3">
+                                            <ImageWithFallback src={lineProfile?.pictureUrl} fallbackEmoji="👤" className="w-full h-full object-cover" />
                                         </div>
-                                        <form onSubmit={handleAdminSubmit} className="space-y-4">
-                                            <input name="username" type="text" placeholder="Username" disabled={isLoading} className="game-input bg-gray-800 border-gray-600 text-white focus:border-gold" required />
-                                            <input name="password" type="password" placeholder="Password" disabled={isLoading} className="game-input bg-gray-800 border-gray-600 text-white focus:border-gold" required />
-                                            <button type="submit" disabled={isLoading} className="w-full py-4 game-button bg-gradient-to-b from-yellow-400 to-yellow-600 border-yellow-200 box-shadow-[0_6px_0_#A16207] text-panel">
-                                                {isLoading ? t.loading : `🔑 ${t.openDoor}`}
-                                            </button>
-                                        </form>
+                                        <h2 className="text-2xl font-black text-wood">{t.registerAdv}</h2>
+                                        <p className="text-sm text-gray-500 font-bold mt-1">ยินดีต้อนรับคุณ {lineProfile?.displayName}</p>
                                     </div>
+                                    <form onSubmit={handleFirstTimeSubmit} className="space-y-4">
+                                        <div><label className="text-sm font-bold text-wood">🏷️ {t.charNickname}</label><input name="nickname" type="text" defaultValue={lineProfile?.displayName || ''} disabled={isLoading} required className="game-input" /></div>
+                                        <div><label className="text-sm font-bold text-wood">🏰 {t.deptGuild}</label><input name="dept" type="text" disabled={isLoading} required className="game-input" /></div>
+                                        <button type="submit" disabled={isLoading} className="w-full py-4 game-button game-button-green mt-6">
+                                            {isLoading ? t.loading : `⭐ ${t.startAdvBtn}`}
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
-                        </ModalPortal>
-                    )}
-                </>
-            );
-        };
+                        </div>
+                    </ModalPortal>
+                )}
+
+                {showAdminLogin && (
+                    <ModalPortal>
+                        <div className="fixed inset-0 z-[9999] overflow-y-auto bg-gray-900/60 backdrop-blur-sm">
+                            <div className="flex min-h-screen items-center justify-center p-4 text-center sm:p-6">
+                                <div className="relative w-full max-w-md bg-panel rounded-3xl p-8 animate-pop-in border-4 border-gold shadow-2xl text-white text-left transition-all my-8 mx-auto">
+                                    <div className="flex justify-between items-center mb-6 border-b-2 border-gray-700 pb-4">
+                                        <h2 className="text-2xl font-black text-gold flex items-center gap-2"><span>🛡️</span> {t.guildStaff}</h2>
+                                        <button onClick={() => setShowAdminLogin(false)} className="text-gray-400 hover:text-white font-bold text-xl">✕</button>
+                                    </div>
+                                    <form onSubmit={handleAdminSubmit} className="space-y-4">
+                                        <input name="username" type="text" placeholder="Username" disabled={isLoading} className="game-input bg-gray-800 border-gray-600 text-white focus:border-gold" required />
+                                        <input name="password" type="password" placeholder="Password" disabled={isLoading} className="game-input bg-gray-800 border-gray-600 text-white focus:border-gold" required />
+                                        <button type="submit" disabled={isLoading} className="w-full py-4 game-button bg-gradient-to-b from-yellow-400 to-yellow-600 border-yellow-200 box-shadow-[0_6px_0_#A16207] text-panel">
+                                            {isLoading ? t.loading : `🔑 ${t.openDoor}`}
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </ModalPortal>
+                )}
+            </>
+        );
+    };
 
         const PlayerScreen = ({ user, setView, setUser, triggerLevelUp, levels, missions, missionLogs, systemAvatars, lang, setLang, t }) => {
             const [playerMissions, setPlayerMissions] = useState([]);
@@ -1034,12 +1073,6 @@
                         </div>
                     </div>
 
-                    {scanningMission && (
-                        <ModalPortal>
-                            <QRScannerModal />
-                        </ModalPortal>
-                    )}
-
                     {showAllMissions && (
                         <ModalPortal>
                             <div className="fixed inset-0 z-[9999] overflow-y-auto bg-gray-900/60 backdrop-blur-sm">
@@ -1146,7 +1179,7 @@
 
             const filteredPlayers = sortedPlayers.filter(p => 
                 String(p.nickname || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
-                String(p.empId || '').includes(searchTerm) ||
+                String(p.lineName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                 String(p.dept || '').toLowerCase().includes(searchTerm.toLowerCase())
             );
 
@@ -1161,7 +1194,7 @@
                 
                 filteredPlayers.forEach((p, index) => {
                     const regDate = p.timestamp ? new Date(p.timestamp).toLocaleDateString('th-TH') : '-';
-                    csvRows.push(`${index + 1},${p.id},${p.empId},"${p.nickname}","${p.dept || ''}",${p.level},${regDate}`);
+                    csvRows.push(`${index + 1},${p.id},"${p.lineName || ''}","${p.nickname}","${p.dept || ''}",${p.level},${regDate}`);
                 });
                 
                 const csvString = "\uFEFF" + csvRows.join('\n');
@@ -1271,7 +1304,7 @@
                                         <tr key={p.id} className="border-b border-gray-100 hover:bg-pink-50 font-medium text-sm">
                                             <td className="p-4 text-center text-gray-500 font-bold">{indexOfFirstItem + index + 1}</td>
                                             <td className="p-4 text-center text-primary font-bold">{p.id}</td>
-                                            <td className="p-4 text-center text-gray-600 font-mono">{p.empId}</td>
+                                            <td className="p-4 text-center text-gray-600 font-mono">{p.lineName || '-'}</td>
                                             <td className="p-4 text-dark font-bold flex items-center gap-3">
                                                 <div className="w-8 h-8 rounded-full bg-pink-100 overflow-hidden border border-pink-200 flex-shrink-0">
                                                     <ImageWithFallback src={(systemAvatars && systemAvatars[p.level]) ? systemAvatars[p.level] : `https://api.dicebear.com/7.x/avataaars/svg?seed=${p.id}&backgroundColor=FFC2D1`} fallbackEmoji="👤" className="w-full h-full object-cover" alt="avatar" />
@@ -1811,7 +1844,7 @@
                                                             <ImageWithFallback src={(systemAvatars && systemAvatars[p.level]) ? systemAvatars[p.level] : `https://api.dicebear.com/7.x/avataaars/svg?seed=${p.id}&backgroundColor=FFC2D1`} fallbackEmoji="👤" className="w-full h-full object-cover" />
                                                         </div>
                                                         <div className="flex-1 min-w-0">
-                                                            <p className="font-bold text-dark truncate">{p.nickname} <span className="text-xs text-gray-400 font-mono ml-2">({p.empId})</span></p>
+                                                            <p className="font-bold text-dark truncate">{p.nickname} <span className="text-xs text-gray-400 font-mono ml-2">({p.lineName})</span></p>
                                                         </div>
                                                         <div className="flex-shrink-0">
                                                             <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-md text-[10px] font-black border border-yellow-300">Lv.{p.level}</span>
@@ -2572,8 +2605,8 @@
                 setShowLevelUp(false);
                 
                 // บันทึกการเลื่อนระดับไปที่ Backend (Google Sheet)
-                if (user && user.empId) {
-                    await apiCall('updateUserLevel', { empId: user.empId, newLevel: nextLevel });
+                if (user && user.id) {
+                    await apiCall('updateUserLevel', { userId: user.id, newLevel: nextLevel });
                 }
             };
 
