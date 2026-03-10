@@ -400,7 +400,7 @@
                 sysNameLabel: 'ชื่อระบบ (System Name)',
                 primaryColorLabel: 'ธีมสีหลัก (Primary Color)',
                 defaultLangLabel: 'ภาษาเริ่มต้น (Default Lang)',
-                gameFeaturesLabel: 'ฟีเจอร์ภายในเกม',
+                gameFeaturesLabel: 'Game Features',
                 featureLeaderboard: 'ระบบ Leaderboard',
                 featureLeaderboardDesc: 'แสดงกระดานจัดอันดับผู้เล่น',
                 featureSound: 'Sound Effect',
@@ -608,6 +608,123 @@
         // COMPONENTS DEFINITIONS
         // ==========================================
         
+        const QRScannerModal = ({ scanningMission, setScanningMission, completeMission, t }) => {
+            const [camError, setCamError] = useState(null);
+            const [isScanning, setIsScanning] = useState(false);
+            const [permissionRequested, setPermissionRequested] = useState(false);
+            const scannerRef = useRef(null);
+
+            const stopScanner = () => {
+                if (scannerRef.current) {
+                    try {
+                        if (scannerRef.current.isScanning || scannerRef.current.getState() === 2) {
+                            scannerRef.current.stop().then(() => {
+                                scannerRef.current.clear();
+                            }).catch(() => {});
+                        } else {
+                            scannerRef.current.clear();
+                        }
+                    } catch (e) {}
+                }
+            };
+
+            const handleCancelScan = () => {
+                stopScanner();
+                setScanningMission(null);
+            };
+
+            const startScan = async () => {
+                setPermissionRequested(true);
+                setCamError(null);
+
+                try {
+                    const cameras = await Html5Qrcode.getCameras();
+                    if (cameras && cameras.length > 0) {
+                        if (!scannerRef.current) {
+                            scannerRef.current = new Html5Qrcode("qr-reader");
+                        }
+
+                        const onScanSuccess = (decodedText) => {
+                            stopScanner();
+                            const expectedQRData = `SLJ_MISSION_${scanningMission.id}`;
+                            if (decodedText === expectedQRData) {
+                                completeMission(scanningMission.id);
+                                GameAlert.success(t.alertSuccess, `${t.scanSuccessPrefix} ${scanningMission.name}`, t.btnConfirm);
+                            } else {
+                                GameAlert.error(t.alertError, t.scanFailMsg, t.btnConfirm);
+                            }
+                            setScanningMission(null);
+                        };
+
+                        const config = { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 };
+
+                        try {
+                            await scannerRef.current.start({ facingMode: "environment" }, config, onScanSuccess);
+                            setIsScanning(true);
+                        } catch (e) {
+                            try {
+                                await scannerRef.current.start(cameras[0].id, config, onScanSuccess);
+                                setIsScanning(true);
+                            } catch (e2) {
+                                setCamError('ไม่สามารถเริ่มต้นกล้องได้ กรุณารีเฟรชแล้วลองใหม่');
+                                setPermissionRequested(false);
+                            }
+                        }
+                    } else {
+                        setCamError('ไม่พบกล้องในอุปกรณ์ของคุณ');
+                        setPermissionRequested(false);
+                    }
+                } catch (err) {
+                    setCamError("ไม่สามารถเข้าถึงกล้องได้ กรุณาให้สิทธิ์กล้องในเบราว์เซอร์");
+                    setPermissionRequested(false);
+                }
+            };
+
+            useEffect(() => {
+                return () => { stopScanner(); };
+            }, []);
+
+            return (
+                <div className="fixed inset-0 z-[9999] overflow-y-auto bg-gray-900/90 backdrop-blur-sm">
+                    <div className="flex min-h-screen items-center justify-center p-4 text-center sm:p-6">
+                        <div className="relative w-full max-w-sm bg-white p-6 rounded-3xl animate-pop-in shadow-2xl border-4 border-panel text-left transition-all my-8 mx-auto">
+                            <h3 className="text-xl font-black text-center mb-2 text-panel flex justify-center items-center gap-2"><span>📷</span> {t.scanQRTitle}</h3>
+                            <p className="text-center text-sm font-bold text-gray-500 mb-4 truncate">{scanningMission?.name}</p>
+
+                            <div className="rounded-2xl overflow-hidden border-4 border-pink-200 shadow-inner bg-black min-h-[250px] h-[250px] relative flex items-center justify-center w-full">
+                                <div id="qr-reader" className={`absolute inset-0 z-0 ${!isScanning ? 'invisible' : 'visible'}`}></div>
+
+                                {!isScanning && (
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50 p-4 text-center z-10">
+                                        {!permissionRequested ? (
+                                            <>
+                                                <span className="text-5xl mb-3">📸</span>
+                                                <p className="text-sm font-bold text-gray-500 mb-4">{t.camAccessDesc}</p>
+                                                <button onClick={startScan} className="game-button game-button-green px-6 py-3 text-sm shadow-[0_4px_0_#166534]">{t.btnReqCam}</button>
+                                            </>
+                                        ) : camError ? (
+                                            <>
+                                                <span className="text-4xl mb-2 text-red-500">🚫</span>
+                                                <p className="text-xs font-bold text-red-500 mb-4 px-2 leading-relaxed">{camError}</p>
+                                                <button onClick={startScan} className="game-button game-button-blue px-4 py-2 text-sm">{t.btnRetryCam}</button>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <div className="animate-spin text-4xl mb-2">⏳</div>
+                                                <p className="text-sm font-bold text-primary">{t.camPrep}</p>
+                                            </>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+
+                            <button onClick={handleCancelScan} className="mt-6 w-full py-4 game-button game-button-red text-lg shadow-[0_6px_0_#991B1B]">{t.cancelScan}</button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
         const LoginScreen = ({ setView, setUser, systemLogo, t, lang, setLang }) => {
             const [empId, setEmpId] = useState('');
             const [isLoading, setIsLoading] = useState(false);
@@ -725,6 +842,7 @@
                             <div className="fixed inset-0 z-[9999] overflow-y-auto bg-gray-900/60 backdrop-blur-sm">
                                 <div className="flex min-h-screen items-center justify-center p-4 text-center sm:p-6">
                                     <div className="relative w-full max-w-md bg-white rounded-3xl p-8 animate-pop-in scroll-panel shadow-2xl text-left transition-all my-8 mx-auto">
+                                        <button type="button" onClick={() => setShowFirstTime(false)} className="absolute top-4 right-4 text-gray-400 hover:text-red-500 font-black text-xl z-50">✕</button>
                                         <div className="text-center mb-6">
                                             <div className="text-5xl mb-2">📜</div>
                                             <h2 className="text-2xl font-black text-wood">{t.registerAdv}</h2>
@@ -821,128 +939,6 @@
                 }
             };
 
-            const QRScannerModal = () => {
-                const [camError, setCamError] = useState(null);
-                const [isScanning, setIsScanning] = useState(false);
-                const [permissionRequested, setPermissionRequested] = useState(false);
-                const scannerRef = useRef(null);
-
-                const stopScanner = () => {
-                    if (scannerRef.current) {
-                        try {
-                            if (scannerRef.current.isScanning || scannerRef.current.getState() === 2) {
-                                scannerRef.current.stop().then(() => {
-                                    scannerRef.current.clear();
-                                }).catch(() => {});
-                            } else {
-                                scannerRef.current.clear();
-                            }
-                        } catch (e) {}
-                    }
-                };
-
-                const handleCancelScan = () => {
-                    stopScanner();
-                    setScanningMission(null);
-                };
-
-                const startScan = async () => {
-                    setPermissionRequested(true);
-                    setCamError(null);
-                    
-                    try {
-                        const cameras = await Html5Qrcode.getCameras();
-                        if (cameras && cameras.length > 0) {
-                            if (!scannerRef.current) {
-                                scannerRef.current = new Html5Qrcode("qr-reader");
-                            }
-                            
-                            const onScanSuccess = (decodedText) => {
-                                stopScanner();
-                                const expectedQRData = `SLJ_MISSION_${scanningMission.id}`;
-                                if (decodedText === expectedQRData) {
-                                    completeMission(scanningMission.id);
-                                    GameAlert.success(t.alertSuccess, `${t.scanSuccessPrefix} ${scanningMission.name}`, t.btnConfirm);
-                                } else {
-                                    GameAlert.error(t.alertError, t.scanFailMsg, t.btnConfirm);
-                                }
-                                setScanningMission(null);
-                            };
-
-                            const config = { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 };
-                            
-                            try {
-                                await scannerRef.current.start({ facingMode: "environment" }, config, onScanSuccess);
-                                setIsScanning(true);
-                            } catch (e) {
-                                console.log("Failed to start environment camera, trying default", e);
-                                try {
-                                    await scannerRef.current.start(cameras[0].id, config, onScanSuccess);
-                                    setIsScanning(true);
-                                } catch (e2) {
-                                    console.error(e2);
-                                    setCamError('ไม่สามารถเริ่มต้นกล้องได้ กรุณารีเฟรชแล้วลองใหม่');
-                                    setPermissionRequested(false);
-                                }
-                            }
-                        } else {
-                            setCamError('ไม่พบกล้องในอุปกรณ์ของคุณ');
-                            setPermissionRequested(false);
-                        }
-                    } catch (err) {
-                        console.error("Camera Request Error:", err);
-                        setCamError(err.message || "ไม่สามารถเข้าถึงกล้องได้ กรุณาให้สิทธิ์กล้องในเบราว์เซอร์");
-                        setPermissionRequested(false);
-                    }
-                };
-
-                useEffect(() => {
-                    return () => {
-                        stopScanner();
-                    };
-                }, []);
-
-                return (
-                    <div className="fixed inset-0 z-[9999] overflow-y-auto bg-gray-900/90 backdrop-blur-sm">
-                        <div className="flex min-h-screen items-center justify-center p-4 text-center sm:p-6">
-                            <div className="relative w-full max-w-sm bg-white p-6 rounded-3xl animate-pop-in shadow-2xl border-4 border-panel text-left transition-all my-8 mx-auto">
-                                <h3 className="text-xl font-black text-center mb-2 text-panel flex justify-center items-center gap-2"><span>📷</span> {t.scanQRTitle}</h3>
-                                <p className="text-center text-sm font-bold text-gray-500 mb-4 truncate">{scanningMission?.name}</p>
-                                
-                                <div className="rounded-2xl overflow-hidden border-4 border-pink-200 shadow-inner bg-black min-h-[250px] h-[250px] relative flex items-center justify-center w-full">
-                                    <div id="qr-reader" className={`absolute inset-0 z-0 ${!isScanning ? 'invisible' : 'visible'}`}></div>
-
-                                    {!permissionRequested && !isScanning && (
-                                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50 p-4 text-center z-10">
-                                            <span className="text-5xl mb-3">📸</span>
-                                            <p className="text-sm font-bold text-gray-500 mb-4">{t.camAccessDesc}</p>
-                                            <button onClick={startScan} className="game-button game-button-green px-6 py-3 text-sm shadow-[0_4px_0_#166534]">{t.btnReqCam}</button>
-                                        </div>
-                                    )}
-                                    
-                                    {permissionRequested && !isScanning && !camError && (
-                                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50 p-4 text-center z-10">
-                                            <div className="animate-spin text-4xl mb-2">⏳</div>
-                                            <p className="text-sm font-bold text-primary">{t.camPrep}</p>
-                                        </div>
-                                    )}
-
-                                    {camError && (
-                                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50 p-4 text-center z-10">
-                                            <span className="text-4xl mb-2 text-red-500">🚫</span>
-                                            <p className="text-xs font-bold text-red-500 mb-4 px-2 leading-relaxed">{camError}</p>
-                                            <button onClick={startScan} className="game-button game-button-blue px-4 py-2 text-sm">{t.btnRetryCam}</button>
-                                        </div>
-                                    )}
-                                </div>
-                                
-                                <button onClick={handleCancelScan} className="mt-6 w-full py-4 game-button game-button-red text-lg shadow-[0_6px_0_#991B1B]">{t.cancelScan}</button>
-                            </div>
-                        </div>
-                    </div>
-                );
-            };
-
             return (
                 <>
                     <div className="min-h-[100dvh] pb-20 max-w-lg mx-auto bg-[#FFF0F3] shadow-2xl relative overflow-hidden border-x border-pink-100">
@@ -965,7 +961,7 @@
                                         <p className="text-xs text-gray-300 flex items-center gap-1 mt-1"><span>🏰</span> {user.dept}</p>
                                     </div>
                                 </div>
-                                <button onClick={() => {setUser(null); setView('login');}} className="bg-white/10 p-3 rounded-xl hover:bg-white/20 transition border border-white/20">🚪</button>
+                                <button onClick={() => { setUser(null); setView('login'); }} className="bg-white/10 p-3 rounded-xl hover:bg-white/20 transition border border-white/20">🚪</button>
                             </div>
 
                             <div className="bg-white text-dark p-5 rounded-2xl shadow-lg mt-2 flex items-center gap-5 border-b-4 border-gray-200">
@@ -1036,7 +1032,12 @@
 
                     {scanningMission && (
                         <ModalPortal>
-                            <QRScannerModal />
+                            <QRScannerModal 
+                                scanningMission={scanningMission}
+                                setScanningMission={setScanningMission}
+                                completeMission={completeMission}
+                                t={t}
+                            />
                         </ModalPortal>
                     )}
 
@@ -1309,7 +1310,7 @@
 
                     {selectedPlayer && (
                         <ModalPortal>
-                            <div className="fixed inset-0 z-[9999] overflow-y-auto bg-gray-900/80 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6">
+                            <div className="fixed inset-0 z-[9999] overflow-y-auto bg-gray-900/80 backdrop-blur-sm flex items-center justify-center p-4 text-center sm:p-6">
                                 <div className="relative w-full max-w-lg bg-[#FFF0F3] rounded-[40px] shadow-2xl animate-pop-in overflow-hidden border-x border-pink-100 mx-auto">
                                     <button onClick={() => setSelectedPlayer(null)} className="absolute top-4 right-4 z-[100] bg-white/20 hover:bg-white/40 p-2 px-3 rounded-xl font-black text-white transition-all">✕</button>
 
@@ -2273,7 +2274,7 @@
                         <ModalPortal>
                             <div className="fixed inset-0 z-[9999] overflow-y-auto bg-gray-900/60 backdrop-blur-sm">
                                 <div className="flex min-h-screen items-center justify-center p-4 text-center sm:p-6">
-                                    <div className="relative w-full max-w-md bg-white rounded-3xl p-6 sm:p-8 animate-pop-in border-4 border-panel shadow-2xl text-left transition-all my-8 mx-auto">
+                                    <div className="relative w-full max-w-md bg-white rounded-3xl p-6 sm:p-8 animate-pop-in border-4 border-gold shadow-2xl text-left transition-all my-8 mx-auto">
                                         <h2 className="text-2xl font-black text-panel mb-6 border-b-2 border-gray-100 pb-4 flex items-center gap-2">
                                             <span>{modalState.mode === 'create' ? '➕' : modalState.mode === 'edit' ? '✏️' : '👁️'}</span>
                                             {modalState.mode === 'create' ? t.modalCreateNpc : modalState.mode === 'edit' ? t.modalEditNpc : t.modalViewNpc}
@@ -2473,7 +2474,7 @@
                             <button onClick={() => props.setLang(props.lang === 'th' ? 'en' : 'th')} className="w-full py-2 bg-gray-800 rounded-lg text-gray-300 font-bold hover:bg-gray-700">
                                 🌐 {props.lang === 'th' ? 'Switch to English' : 'เปลี่ยนเป็นภาษาไทย'}
                             </button>
-                            <button onClick={() => {props.setUser(null); props.setView('login');}} className="w-full py-3 game-button game-button-red">🚪 {t.logout}</button>
+                            <button onClick={() => { props.setUser(null); props.setView('login'); }} className="w-full py-3 game-button game-button-red">🚪 {t.logout}</button>
                         </div>
                     </div>
 
@@ -2567,11 +2568,9 @@
                 if (!newLevelData) return;
                 const nextLevel = newLevelData.id;
                 
-                // เลื่อนระดับใน State ทันทีเพื่อให้แสดงผลหน้าต่างใหม่
                 setUser(prev => ({ ...prev, level: nextLevel }));
                 setShowLevelUp(false);
                 
-                // บันทึกการเลื่อนระดับไปที่ Backend (Google Sheet)
                 if (user && user.empId) {
                     await apiCall('updateUserLevel', { empId: user.empId, newLevel: nextLevel });
                 }
